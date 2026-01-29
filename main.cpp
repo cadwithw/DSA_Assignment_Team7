@@ -1,25 +1,72 @@
-// DSA_Assignment.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 using namespace std;
 
-int main()
-{
-    cout << "Hello World!\n";
+#include "GameDynamicArray.h"
+#include "UserDynamicArray.h"
+#include "BorrowLinkedList.h"
+#include "CSVHandler.h"
+
+#include "AdminMenu.h"
+#include "MemberMenu.h"
+#include "AllUsersMenu.h"
+
+int main() {
+    GameDynamicArray games;
+    UserDynamicArray users;
+    BorrowLinkedList records;
+
+    // Load CSV data
+    CSVHandler::loadGames("games.csv", games);
+    CSVHandler::loadUsers("users.csv", users);
+    CSVHandler::loadBorrowRecords("borrow_records.csv", records);
+
+    cout << "=========================================\n";
+    cout << " NPTTGC Board Game Management Application \n";
+    cout << "=========================================\n";
+
+    while (true) {
+        cout << "\nMain Menu\n";
+        cout << "1. Login\n";
+        cout << "2. Continue as Guest (All Users Features)\n";
+        cout << "0. Exit\n";
+        cout << "Choice: ";
+
+        int choice;
+        cin >> choice;
+
+        if (choice == 0) break;
+
+        if (choice == 2) {
+            AllUsersMenu::show(games);
+            continue;
+        }
+
+        if (choice == 1) {
+            string userID;
+            cout << "Enter User ID: ";
+            cin >> userID;
+
+            User* u = users.findByUserID(userID);
+
+            if (u == nullptr) {
+                cout << "Invalid User ID.\n";
+                continue;
+            }
+
+            if (u->isAdmin()) {
+                AdminMenu::show(games, users, records);
+            }
+            else {
+                MemberMenu::show(*u, games, records);
+            }
+        }
+    }
+
+    // Save before exit
+    CSVHandler::saveGames("games.csv", games);
+    CSVHandler::saveUsers("users.csv", users);
+    CSVHandler::saveBorrowRecords("borrow_records.csv", records);
+
+    cout << "Goodbye!\n";
+    return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
