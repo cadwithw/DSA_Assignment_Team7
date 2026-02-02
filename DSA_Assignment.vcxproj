@@ -123,7 +123,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BorrowLinkedList.cpp" />
+    <ClCompile Include="BorrowRecord.cpp" />
+    <ClCompile Include="CSVHandler.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameDynamicArray.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="User.cpp" />
+    <ClCompile Include="UserDynamicArray.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AdminMenu.h" />
+    <ClInclude Include="AllUsersMenu.h" />
+    <ClInclude Include="BorrowLinkedList.h" />
+    <ClInclude Include="BorrowRecord.h" />
+    <ClInclude Include="CSVHandler.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="GameDynamicArray.h" />
+    <ClInclude Include="MemberMenu.h" />
+    <ClInclude Include="User.h" />
+    <ClInclude Include="UserDynamicArray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
