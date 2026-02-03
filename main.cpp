@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 using namespace std;
 
 #include "GameDynamicArray.h"
@@ -24,7 +25,9 @@ int main() {
     cout << " NPTTGC Board Game Management Application \n";
     cout << "=========================================\n";
 
-    while (true) {
+    bool exitProgram = false;
+
+    while (!exitProgram) {
         cout << "\nMain Menu\n";
         cout << "1. Login\n";
         cout << "0. Exit\n";
@@ -35,7 +38,7 @@ int main() {
 
         switch (choice) {
             case 0:
-                goto exit_loop;
+                break;
             case 1: {
                 string userID;
                 cout << "Enter User ID: ";
@@ -49,10 +52,10 @@ int main() {
                 }
 
                 if (u->isAdmin()) {
-                    AdminMenu::show(games, users, records);
+                    AdminMenu::show(games, users, records); // For Admin Menu
                 } else {
-                    MemberMenu::show(*u, games, records);
-                    goto exit_loop;
+					MemberMenu::show(*u, games, records); // For Member Menu
+					exitProgram = true; // Exit after member session
                 }
                 break;
             }
@@ -62,7 +65,6 @@ int main() {
         }
     }
 
-    exit_loop:
     // Save before exit
     CSVHandler::saveGames("games.csv", games);
     CSVHandler::saveUsers("users.csv", users);
