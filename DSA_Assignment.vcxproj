@@ -146,6 +146,13 @@
     <ClInclude Include="User.h" />
     <ClInclude Include="UserDynamicArray.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="borrow_records.csv" />
+    <None Include="games.csv" />
+    <None Include="play_sessions.csv" />
+    <None Include="reviews.csv" />
+    <None Include="users.csv" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
