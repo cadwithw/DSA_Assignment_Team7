@@ -33,30 +33,36 @@ int main() {
         int choice;
         cin >> choice;
 
-        if (choice == 0) break;
+        switch (choice) {
+            case 0:
+                goto exit_loop;
+            case 1: {
+                string userID;
+                cout << "Enter User ID: ";
+                cin >> userID;
 
-        if (choice == 1) {
-            string userID;
-            cout << "Enter User ID: ";
-            cin >> userID;
+                User* u = users.findByUserID(userID);
 
-            User* u = users.findByUserID(userID);
+                if (u == nullptr) {
+                    cout << "Invalid User ID.\n";
+                    break;
+                }
 
-            if (u == nullptr) {
-                cout << "Invalid User ID.\n";
-                continue;
-            }
-
-            if (u->isAdmin()) {
-                AdminMenu::show(games, users, records);
-            }
-            else {
-                MemberMenu::show(*u, games, records);
+                if (u->isAdmin()) {
+                    AdminMenu::show(games, users, records);
+                } else {
+                    MemberMenu::show(*u, games, records);
+                    goto exit_loop;
+                }
                 break;
             }
+            default:
+                cout << "Invalid choice. Please try again.\n";
+                break;
         }
     }
 
+    exit_loop:
     // Save before exit
     CSVHandler::saveGames("games.csv", games);
     CSVHandler::saveUsers("users.csv", users);

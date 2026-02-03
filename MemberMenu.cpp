@@ -9,7 +9,14 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
     cout << "2. Return a Game\n";
     cout << "3. Display Summary\n";
     cout << "4. Review Games\n";
-    cout << "2. Record a Game\n";
+    cout << "5. Record a Game\n";
     cout << "0. Return a Game\n";
     cout << "Choice: ";
+
+	int choice;
+    cin >> choice;
+
+    if (choice == 0);
+
+    if 
 }
