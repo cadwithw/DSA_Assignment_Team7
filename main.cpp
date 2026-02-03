@@ -27,7 +27,6 @@ int main() {
     while (true) {
         cout << "\nMain Menu\n";
         cout << "1. Login\n";
-        cout << "2. Continue as Guest (All Users Features)\n";
         cout << "0. Exit\n";
         cout << "Choice: ";
 
@@ -35,11 +34,6 @@ int main() {
         cin >> choice;
 
         if (choice == 0) break;
-
-        if (choice == 2) {
-            AllUsersMenu::show(games);
-            continue;
-        }
 
         if (choice == 1) {
             string userID;
@@ -58,6 +52,7 @@ int main() {
             }
             else {
                 MemberMenu::show(*u, games, records);
+                break;
             }
         }
     }

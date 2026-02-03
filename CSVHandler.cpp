@@ -18,6 +18,54 @@ static string trim(const string& s) {
     return s.substr(start, end - start + 1);
 }
 
+// Helper: parse CSV field handling quoted fields
+static string parseCSVField(stringstream& ss) {
+    string field;
+    char ch;
+    
+    // Skip leading whitespace
+    while (ss.peek() == ' ' || ss.peek() == '\t') {
+        ss.get();
+    }
+    
+    // Check if field is quoted
+    if (ss.peek() == '"') {
+        ss.get(); // consume opening quote
+        while (ss.get(ch)) {
+            if (ch == '"') {
+                // Check for escaped quote (two quotes)
+                if (ss.peek() == '"') {
+                    ss.get(); // consume second quote
+                    field += '"';
+                } else {
+                    // End of quoted field
+                    break;
+                }
+            } else {
+                field += ch;
+            }
+        }
+        // Consume trailing comma if present
+        while (ss.peek() == ' ' || ss.peek() == '\t') {
+            ss.get();
+        }
+        if (ss.peek() == ',') {
+            ss.get();
+        }
+    } else {
+        // Unquoted field - read until comma or end
+        while (ss.get(ch)) {
+            if (ch == ',') {
+                break;
+            }
+            field += ch;
+        }
+        field = trim(field);
+    }
+    
+    return field;
+}
+
 bool CSVHandler::loadGames(const string& filename, GameDynamicArray& games) {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -37,26 +85,34 @@ bool CSVHandler::loadGames(const string& filename, GameDynamicArray& games) {
 
         stringstream ss(line);
 
-        string gameID, title, minPStr, maxPStr, yearStr, totalStr, availStr;
+        string name = parseCSVField(ss);
+        string minPStr = parseCSVField(ss);
+        string maxPStr = parseCSVField(ss);
+        string maxPlaytimeStr = parseCSVField(ss);
+        string minPlaytimeStr = parseCSVField(ss);
+        string yearStr = parseCSVField(ss);
 
-        getline(ss, gameID, ',');
-        getline(ss, title, ',');
-        getline(ss, minPStr, ',');
-        getline(ss, maxPStr, ',');
-        getline(ss, yearStr, ',');
-        getline(ss, totalStr, ',');
-        getline(ss, availStr, ',');
+        // Validate and parse numeric fields with error handling
+        if (name.empty()) continue; // Skip rows with empty name
 
-        gameID = trim(gameID);
-        title = trim(title);
+        int minPlayers = 0;
+        int maxPlayers = 0;
+        int year = 0;
 
-        int minPlayers = stoi(trim(minPStr));
-        int maxPlayers = stoi(trim(maxPStr));
-        int year = stoi(trim(yearStr));
-        int totalCopies = stoi(trim(totalStr));
-        int availableCopies = stoi(trim(availStr));
+        try {
+            minPlayers = stoi(trim(minPStr));
+            maxPlayers = stoi(trim(maxPStr));
+            year = stoi(trim(yearStr));
+        } catch (const exception& e) {
+            cout << "[WARNING] Skipping game '" << name << "' due to invalid numeric data: " << e.what() << "\n";
+            continue;
+        }
 
-        Game g(gameID, title, minPlayers, maxPlayers, year, totalCopies, availableCopies);
+        // Default values for fields not in CSV
+        int totalCopies = 1;
+        int availableCopies = 1;
+
+        Game g(name, name, minPlayers, maxPlayers, year, totalCopies, availableCopies);
         games.add(g);
     }
 
@@ -72,18 +128,17 @@ bool CSVHandler::saveGames(const string& filename, GameDynamicArray& games) {
     }
 
     // Header
-    file << "gameID,title,minPlayers,maxPlayers,year,totalCopies,availableCopies\n";
+    file << "name,minplayers,maxplayers,maxplaytime,minplaytime,yearpublished\n";
 
     for (int i = 0; i < games.size(); i++) {
         Game g = games.get(i);
 
-        file << g.getGameID() << ","
-            << g.getTitle() << ","
+        file << "\"" << g.getTitle() << "\","
             << g.getMinPlayers() << ","
             << g.getMaxPlayers() << ","
-            << g.getYear() << ","
-            << g.getTotalCopies() << ","
-            << g.getAvailableCopies() << "\n";
+            << "0" << ","
+            << "0" << ","
+            << g.getYear() << "\n";
     }
 
     file.close();

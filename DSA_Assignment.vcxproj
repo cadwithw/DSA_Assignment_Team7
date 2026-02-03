@@ -123,18 +123,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AdminMenu.cpp" />
+    <ClCompile Include="AllUsersMenu.cpp" />
     <ClCompile Include="BorrowLinkedList.cpp" />
     <ClCompile Include="BorrowRecord.cpp" />
     <ClCompile Include="CSVHandler.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameDynamicArray.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MemberMenu.cpp" />
     <ClCompile Include="User.cpp" />
     <ClCompile Include="UserDynamicArray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdminMenu.h" />
-    <ClInclude Include="AllUsersMenu.h" />
     <ClInclude Include="BorrowLinkedList.h" />
     <ClInclude Include="BorrowRecord.h" />
     <ClInclude Include="CSVHandler.h" />
