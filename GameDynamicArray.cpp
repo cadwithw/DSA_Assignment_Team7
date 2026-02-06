@@ -1,5 +1,6 @@
 #include "GameDynamicArray.h"
 #include <iostream>
+
 using namespace std;
 
 GameDynamicArray::GameDynamicArray() {
@@ -13,8 +14,8 @@ GameDynamicArray::~GameDynamicArray() {
 }
 
 void GameDynamicArray::resize() {
-    int newCap = capacity * 2;
-    Game* newData = new Game[newCap];
+    int newCapacity = capacity * 2;
+    Game* newData = new Game[newCapacity];
 
     for (int i = 0; i < count; i++) {
         newData[i] = data[i];
@@ -22,11 +23,15 @@ void GameDynamicArray::resize() {
 
     delete[] data;
     data = newData;
-    capacity = newCap;
+    capacity = newCapacity;
 }
 
 int GameDynamicArray::size() const {
     return count;
+}
+
+bool GameDynamicArray::isEmpty() const {
+    return count == 0;
 }
 
 Game GameDynamicArray::get(int index) const {
@@ -38,32 +43,47 @@ Game* GameDynamicArray::getPtr(int index) {
 }
 
 void GameDynamicArray::add(const Game& g) {
-    if (count >= capacity) resize();
+    if (count >= capacity) {
+        resize();
+    }
     data[count] = g;
     count++;
 }
 
 int GameDynamicArray::findIndexByGameID(const string& gameID) const {
     for (int i = 0; i < count; i++) {
-        if (data[i].getGameID() == gameID) return i;
+        if (data[i].getGameID() == gameID) {
+            return i;
+        }
     }
     return -1;
 }
 
-bool GameDynamicArray::removeByGameID(const string& gameID) {
-    int idx = findIndexByGameID(gameID);
-    if (idx == -1) return false;
+Game* GameDynamicArray::findByGameID(const string& gameID) {
+    int index = findIndexByGameID(gameID);
+    if (index == -1) {
+        return nullptr;
+    }
+    return &data[index];
+}
 
-    for (int i = idx; i < count - 1; i++) {
+bool GameDynamicArray::removeByGameID(const string& gameID) {
+    int index = findIndexByGameID(gameID);
+    if (index == -1) {
+        return false;
+    }
+
+    for (int i = index; i < count - 1; i++) {
         data[i] = data[i + 1];
     }
+
     count--;
     return true;
 }
 
 void GameDynamicArray::printAll() const {
     for (int i = 0; i < count; i++) {
-        cout << "---------------------\n";
         data[i].print();
+        cout << "----------------------\n";
     }
 }

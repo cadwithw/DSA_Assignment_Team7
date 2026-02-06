@@ -22,6 +22,7 @@ public:
     void printAll() const;
     void printByUser(const string& userID) const;
     void writeToCSV(ofstream& file) const;
+    bool isEmpty() const { return head == nullptr; }
 };
 
 #endif

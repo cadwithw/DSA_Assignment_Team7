@@ -18,5 +18,5 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
 
     if (choice == 0);
 
-    if 
+    
 }

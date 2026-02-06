@@ -124,7 +124,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AdminMenu.cpp" />
-    <ClCompile Include="AllUsersMenu.cpp" />
     <ClCompile Include="BorrowLinkedList.cpp" />
     <ClCompile Include="BorrowRecord.cpp" />
     <ClCompile Include="CSVHandler.cpp" />
