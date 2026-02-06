@@ -8,7 +8,6 @@ using namespace std;
 
 #include "AdminMenu.h"
 #include "MemberMenu.h"
-#include "AllUsersMenu.h"
 
 int main() {
     GameDynamicArray games;
@@ -24,7 +23,9 @@ int main() {
     cout << " NPTTGC Board Game Management Application \n";
     cout << "=========================================\n";
 
-    while (true) {
+    bool running = true;
+
+    while (running) {
         cout << "\nMain Menu\n";
         cout << "1. Login\n";
         cout << "0. Exit\n";
@@ -33,36 +34,31 @@ int main() {
         int choice;
         cin >> choice;
 
-        switch (choice) {
-            case 0:
-                goto exit_loop;
-            case 1: {
-                string userID;
-                cout << "Enter User ID: ";
-                cin >> userID;
+        if (choice == 0) {
+            running = false;
+        }
+        else if (choice == 1) {
+            string userID;
+            cout << "Enter User ID: ";
+            cin >> userID;
 
-                User* u = users.findByUserID(userID);
+            User* u = users.findByUserID(userID);
 
-                if (u == nullptr) {
-                    cout << "Invalid User ID.\n";
-                    break;
-                }
-
-                if (u->isAdmin()) {
-                    AdminMenu::show(games, users, records);
-                } else {
-                    MemberMenu::show(*u, games, records);
-                    goto exit_loop;
-                }
-                break;
+            if (u == nullptr) {
+                cout << "Invalid User ID.\n";
             }
-            default:
-                cout << "Invalid choice. Please try again.\n";
-                break;
+            else if (u->isAdmin()) {
+                AdminMenu::show(games, users, records);
+            }
+            else {
+                MemberMenu::show(*u, games, records);
+            }
+        }
+        else {
+            cout << "Invalid choice. Please try again.\n";
         }
     }
 
-    exit_loop:
     // Save before exit
     CSVHandler::saveGames("games.csv", games);
     CSVHandler::saveUsers("users.csv", users);
