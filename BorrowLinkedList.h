@@ -23,6 +23,11 @@ public:
     void printByUser(const string& userID) const;
     void writeToCSV(ofstream& file) const;
     bool isEmpty() const { return head == nullptr; }
+    
+    // New helper methods for summary statistics
+    int countBorrowsByUser(const string& userID) const;
+    int countReturnsByUser(const string& userID) const;
+    int countActiveBorrowsByUser(const string& userID) const;
 };
 
 #endif
