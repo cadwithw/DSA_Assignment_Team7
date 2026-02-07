@@ -1,2 +1,2 @@
-reviewID,gameID,userID,rating,comment
-RV001,G001,U002,9,Great game!
+gameID,memberName,rating,comment
+G001,John,5,Best game ever!

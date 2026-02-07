@@ -393,6 +393,7 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
         cout << "3. Display Summary\n";
         cout << "4. Review Games\n";
         cout << "5. Record a Game\n";
+        cout << "6. Write a Review\n";
         cout << "0. Logout\n";
 
         choice = getValidChoice(0, 6);
@@ -412,6 +413,9 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
             break;
         case 5:
             recordGame(games);
+            break;
+        case 6:
+            
             break;
         case 0:
             cout << "Logging out...\n";

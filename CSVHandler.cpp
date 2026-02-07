@@ -290,3 +290,125 @@ bool CSVHandler::saveBorrowRecords(const string& filename, BorrowLinkedList& rec
     file.close();
     return true;
 }
+bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        // Not an error; file might not exist yet on first run
+        return false; 
+    }
+
+    string line;
+    // Skip header: gameID,memberName,rating,comment
+    if (!getline(file, line)) return false;
+
+    while (getline(file, line)) {
+        if (trim(line) == "") continue;
+
+        stringstream ss(line);
+        string gID, name, rateStr, comm;
+
+        getline(ss, gID, ',');
+        getline(ss, name, ',');
+        getline(ss, rateStr, ',');
+        getline(ss, comm, ','); // This assumes comments don't contain commas
+
+        gID = trim(gID);
+        name = trim(name);
+        int rate = 0;
+        for (char c : trim(rateStr)) if (c >= '0' && c <= '9') rate = rate * 10 + (c - '0');
+        comm = trim(comm);
+
+        // Find the game pointer and add the review to its BST
+        for (int i = 0; i < games.size(); i++) {
+            if (games.get(i).getGameID() == gID) {
+                // We use getPtr to ensure we are modifying the actual game in the array
+                games.getPtr(i)->addReview(name, comm, rate);
+                break;
+            }
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+bool CSVHandler::saveReviews(const string& filename, GameDynamicArray& games) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "[ERROR] Unable to write reviews to " << filename << "\n";
+        return false;
+    }
+
+    // Header row
+    file << "gameID,memberName,rating,comment\n";
+
+    for (int i = 0; i < games.size(); i++) {
+        // This calls the Game::saveReviews method we wrote earlier, 
+        // which performs the Pre-Order traversal of the BST.
+        games.get(i).saveReviews(file);
+    }
+
+    file.close();
+    return true;
+}
+bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        // Not an error; file might not exist yet on first run
+        return false;
+    }
+
+    string line;
+    // Skip header: gameID,memberName,rating,comment
+    if (!getline(file, line)) return false;
+
+    while (getline(file, line)) {
+        if (trim(line) == "") continue;
+
+        stringstream ss(line);
+        string gID, name, rateStr, comm;
+
+        getline(ss, gID, ',');
+        getline(ss, name, ',');
+        getline(ss, rateStr, ',');
+        getline(ss, comm, ','); // This assumes comments don't contain commas
+
+        gID = trim(gID);
+        name = trim(name);
+        int rate = 0;
+        for (char c : trim(rateStr)) if (c >= '0' && c <= '9') rate = rate * 10 + (c - '0');
+        comm = trim(comm);
+
+        // Find the game pointer and add the review to its BST
+        for (int i = 0; i < games.size(); i++) {
+            if (games.get(i).getGameID() == gID) {
+                // We use getPtr to ensure we are modifying the actual game in the array
+                games.getPtr(i)->addReview(name, comm, rate);
+                break;
+            }
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+bool CSVHandler::saveReviews(const string& filename, GameDynamicArray& games) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "[ERROR] Unable to write reviews to " << filename << "\n";
+        return false;
+    }
+
+    // Header row
+    file << "gameID,memberName,rating,comment\n";
+
+    for (int i = 0; i < games.size(); i++) {
+        // This calls the Game::saveReviews method we wrote earlier, 
+        // which performs the Pre-Order traversal of the BST.
+        games.get(i).saveReviews(file);
+    }
+
+    file.close();
+    return true;
+}
