@@ -59,6 +59,7 @@ static int getValidPositiveInt(const string& prompt) {
     }
 }
 
+// MEMBER MENU OPTIONS
 // 1. Borrow a Game
 static void borrowGame(const User& member, GameDynamicArray& games, BorrowLinkedList& records) {
     cout << "\n--- Borrow a Game ---\n";
