@@ -6,7 +6,17 @@
 
 using namespace std;
 
-// Helper: trim spaces (optional but useful)
+string intToStr(int value) {
+    if (value == 0) return "0";
+    string res = "";
+    while (value > 0) {
+        res = (char)((value % 10) + '0') + res;
+        value /= 10;
+    }
+    return res;
+}
+
+
 static string trim(const string& s) {
     int start = 0;
     while (start < (int)s.length() && (s[start] == ' ' || s[start] == '\t')) start++;
@@ -18,17 +28,17 @@ static string trim(const string& s) {
     return s.substr(start, end - start + 1);
 }
 
-// Helper: parse CSV field handling quoted fields
+
 static string parseCSVField(stringstream& ss) {
     string field;
     char ch;
     
-    // Skip leading whitespace
+
     while (ss.peek() == ' ' || ss.peek() == '\t') {
         ss.get();
     }
     
-    // Check if field is quoted
+
     if (ss.peek() == '"') {
         ss.get(); // consume opening quote
         while (ss.get(ch)) {
@@ -38,7 +48,7 @@ static string parseCSVField(stringstream& ss) {
                     ss.get(); // consume second quote
                     field += '"';
                 } else {
-                    // End of quoted field
+                    
                     break;
                 }
             } else {
@@ -69,57 +79,76 @@ static string parseCSVField(stringstream& ss) {
 bool CSVHandler::loadGames(const string& filename, GameDynamicArray& games) {
     ifstream file(filename);
     if (!file.is_open()) {
-        cout << "[ERROR] Unable to open " << filename << "\n";
+        cout << "[ERROR] Could not open games.csv" << endl;
         return false;
     }
 
     string line;
-    // Skip header
-    if (!getline(file, line)) {
-        file.close();
-        return false;
-    }
+    // 1. Skip the header row (name, minplayers, etc.)
+    getline(file, line);
+
+    int idCounter = 1; // Start counting from 1 for G001, G002...
 
     while (getline(file, line)) {
-        if (trim(line) == "") continue;
+        if (line.length() == 0) continue;
 
-        stringstream ss(line);
+        // --- STEP 1: Generate the ID "Gxxx" manually ---
+        string id = "G";
+        if (idCounter < 100) id += "0";
+        if (idCounter < 10) id += "0";
+        id += intToStr(idCounter);
+        idCounter++;
 
-        string name = parseCSVField(ss);
-        string minPStr = parseCSVField(ss);
-        string maxPStr = parseCSVField(ss);
-        string maxPlaytimeStr = parseCSVField(ss);
-        string minPlaytimeStr = parseCSVField(ss);
-        string yearStr = parseCSVField(ss);
+        // --- STEP 2: Initialize variables to 0 (Fixes "not defined" errors) ---
+        string title = "";
+        int minP = 0, maxP = 0, year = 0;
 
-        // Validate and parse numeric fields with error handling
-        if (name.empty()) continue; // Skip rows with empty name
+        // --- STEP 3: Manual Parsing (No stringstream) ---
+        // This uses string::find and string::substr which are standard string methods
+        size_t start = 0;
+        size_t end = line.find(',');
 
-        int minPlayers = 0;
-        int maxPlayers = 0;
-        int year = 0;
-
-        try {
-            minPlayers = stoi(trim(minPStr));
-            maxPlayers = stoi(trim(maxPStr));
-            year = stoi(trim(yearStr));
-        } catch (const exception& e) {
-            cout << "[WARNING] Skipping game '" << name << "' due to invalid numeric data: " << e.what() << "\n";
-            continue;
+        // Field 1: Name (Handle quotes if they exist)
+        title = line.substr(start, end - start);
+        if (title.length() > 0 && title[0] == '"') {
+            title = title.substr(1, title.length() - 2);
         }
 
-        // Default values for fields not in CSV
-        int totalCopies = 1;
-        int availableCopies = 1;
+        // Field 2: minplayers
+        start = end + 1;
+        end = line.find(',', start);
+        string minPStr = line.substr(start, end - start);
 
-        Game g(name, name, minPlayers, maxPlayers, year, totalCopies, availableCopies);
+        // Field 3: maxplayers
+        start = end + 1;
+        end = line.find(',', start);
+        string maxPStr = line.substr(start, end - start);
+
+        // Fields 4 & 5: (Playtimes - we skip these)
+        start = end + 1;
+        end = line.find(',', start); // skip maxplaytime
+        start = end + 1;
+        end = line.find(',', start); // skip minplaytime
+
+        // Field 6: yearpublished
+        start = end + 1;
+        string yearStr = line.substr(start);
+
+        // --- STEP 4: Convert strings to integers manually ---
+        // Using a basic loop to avoid stoi if necessary
+        for (char c : minPStr) if (c >= '0' && c <= '9') minP = minP * 10 + (c - '0');
+        for (char c : maxPStr) if (c >= '0' && c <= '9') maxP = maxP * 10 + (c - '0');
+        for (char c : yearStr) if (c >= '0' && c <= '9') year = year * 10 + (c - '0');
+
+        // --- STEP 5: Create Game object and add to your Dynamic Array ---
+        // We set totalCopies and availableCopies to 1 by default
+        Game g(id, title, minP, maxP, year, 1, 1);
         games.add(g);
     }
 
     file.close();
     return true;
 }
-
 bool CSVHandler::saveGames(const string& filename, GameDynamicArray& games) {
     ofstream file(filename);
     if (!file.is_open()) {
