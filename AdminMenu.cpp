@@ -4,8 +4,8 @@
 
 using namespace std;
 
-// --- Private Utilities (Internal to this file) ---
 
+ 
 static string intToStr(int value) {
     if (value == 0) return "0";
     string res = "";
@@ -23,18 +23,19 @@ static void printColumn(string text, int width) {
     }
 }
 
-static int getValidInt(string prompt) {
+static int getValidInt(string prompt, int minVal, int maxVal) {
     int val;
     while (true) {
         cout << prompt;
-        if (cin >> val && val >= 0) {
-            cin.ignore(1000, '\n'); // Clear buffer
+        // Check if input is a number AND within the specific range
+        if (cin >> val && val >= minVal && val <= maxVal) {
+            cin.ignore(1000, '\n');
             return val;
         }
         else {
-            cout << "[INVALID] Please enter a positive whole number.\n";
-            cin.clear();
-            cin.ignore(1000, '\n');
+            cout << "[INVALID] Please enter a number between " << minVal << " and " << maxVal << ".\n";
+            cin.clear();           // Reset error flags
+            cin.ignore(1000, '\n'); // Discard bad input
         }
     }
 }
@@ -97,35 +98,34 @@ void AdminMenu::show(GameDynamicArray& games, UserDynamicArray& users, BorrowLin
 void AdminMenu::handleAddGame(GameDynamicArray& games) {
     string title;
 
-    // Auto-generate ID (G001, G002...)
     int nextNum = games.size() + 1;
-    string id = "G";
-    if (nextNum < 100) id += "0";
-    if (nextNum < 10) id += "0";
-    id += intToStr(nextNum);
+    string id = "G" + (nextNum < 100 ? string("0") : "") + (nextNum < 10 ? string("0") : "") + intToStr(nextNum);
 
     cout << "\nAdding New Game (Assigned ID: " << id << ")\n";
-    cin.ignore();
+    cin.ignore(1000, '\n');
 
     while (true) {
         cout << "Title: ";
         getline(cin, title);
-        if (title.length() > 0) break;
-        cout << "[ERROR] Title cannot be empty.\n";
+        if (title.length() >= 2) break; // Ensure title isn't empty or a single character
+        cout << "[ERROR] Title must be at least 2 characters long.\n";
     }
 
-    int minP = getValidInt("Min players: ");
-    int maxP = getValidInt("Max players: ");
-    while (maxP < minP) {
-        cout << "[ERROR] Max players cannot be less than Min players.\n";
-        maxP = getValidInt("Max players: ");
-    }
+    // Min Players: 1-20
+    int minP = getValidInt("Min players (1-20): ", 1, 20);
 
-    int year = getValidInt("Year published: ");
-    int total = getValidInt("Total copies to add: ");
+    // Max Players: must be >= minP and <= 100
+    int maxP = getValidInt("Max players (" + intToStr(minP) + "-100): ", minP, 100);
+
+    // Year: 4 digits (1900 to current-ish)
+    int year = getValidInt("Year published (1900-2026): ", 1900, 2026);
+
+    // Copies: 1-100
+    int total = getValidInt("Total copies to add (1-100): ", 1, 100);
 
     Game newGame(id, title, minP, maxP, year, total, total);
     games.add(newGame);
+    CSVHandler::saveGames("games.csv", games); // Auto-save
     cout << "\n[SUCCESS] Game '" << title << "' added to inventory.\n";
 }
 
@@ -137,36 +137,69 @@ void AdminMenu::handleRemoveGame(GameDynamicArray& games) {
     cout << "Enter Game ID to remove (e.g., G001): ";
     cin >> id;
 
-    if (games.removeByGameID(id)) {
-        CSVHandler::saveGames("games.csv", games);
-        cout << "[SUCCESS] Game " << id << " removed and CSV updated.\n";
+    // 1. First, find if the game actually exists
+    Game* g = games.findByGameID(id);
+
+    if (g != nullptr) {
+        // 2. Display the game details so the user knows exactly what they are deleting
+        cout << "\n[CONFIRMATION REQUIRED]" << endl;
+        cout << "Are you sure you want to remove: " << g->getTitle() << " (" << id << ")?" << endl;
+
+        char confirm;
+        while (true) {
+            cout << "Type 'Y' to confirm or 'N' to cancel: ";
+            cin >> confirm;
+            confirm = toupper(confirm); // Handle lowercase 'y' or 'n'
+
+            if (confirm == 'Y') {
+                // 3. Proceed with deletion
+                if (games.removeByGameID(id)) {
+                    CSVHandler::saveGames("games.csv", games);
+                    cout << "[SUCCESS] Game " << id << " removed and CSV updated.\n";
+                }
+                break;
+            }
+            else if (confirm == 'N') {
+                cout << "[CANCELLED] Deletion aborted. Game remains in inventory.\n";
+                break;
+            }
+            else {
+                cout << "[INVALID] Please enter Y or N.\n";
+                cin.clear();
+                cin.ignore(1000, '\n');
+            }
+        }
     }
     else {
-        cout << "[ERROR] Game not found.\n";
+        cout << "[ERROR] Game ID " << id << " not found.\n";
     }
 }
 
-/**
- * Logic for adding new members with unique ID check.
- */
  /**
   * Logic for adding new members with unique ID check.
   */
 void AdminMenu::handleAddMember(UserDynamicArray& users) {
     string userID, name;
-    cout << "Enter new User ID: ";
-    cin >> userID;
 
-    // Check if user already exists
-    if (users.findByUserID(userID) != nullptr) {
-        cout << "[ERROR] User ID already exists.\n";
-        return;
+    while (true) {
+        cout << "Enter new User ID (e.g., M101): ";
+        cin >> userID;
+        if (userID.length() >= 3) {
+            if (users.findByUserID(userID) == nullptr) break;
+            cout << "[ERROR] User ID already exists.\n";
+        }
+        else {
+            cout << "[ERROR] ID must be at least 3 characters.\n";
+        }
     }
 
-
-    cin.ignore(1000, '\n'); // Clean buffer before getline
-    cout << "Enter Name: ";
-    getline(cin, name);
+    cin.ignore(1000, '\n');
+    while (true) {
+        cout << "Enter Name: ";
+        getline(cin, name);
+        if (name.length() >= 2) break;
+        cout << "[ERROR] Name must be at least 2 characters.\n";
+    }
 
     User u(userID, name, MEMBER);
     users.add(u);
@@ -195,7 +228,9 @@ void AdminMenu::handleGameSearch(GameDynamicArray& games) {
  * Logic for filtering games by player count and sorting using Bubble Sort.
  */
 void AdminMenu::handleFilterAndSort(GameDynamicArray& games) {
-    int players = getValidInt("Enter number of players to filter by: ");
+    // Validate player count: must be between 1 and 100
+    int players = getValidInt("Enter number of players to filter by (1-100): ", 1, 100);
+
     GameDynamicArray filtered;
 
     for (int i = 0; i < games.size(); i++) {
@@ -206,29 +241,43 @@ void AdminMenu::handleFilterAndSort(GameDynamicArray& games) {
     }
 
     if (filtered.size() == 0) {
-        cout << "No games found for " << players << " players.\n";
+        cout << "[INFO] No games found that support " << players << " players.\n";
         return;
     }
 
-    cout << "\nSort results by:\n1. Year Published\n2. Max Player Count\nChoice: ";
-    int sortChoice;
-    cin >> sortChoice;
+    cout << "\nSort results by:\n";
+    cout << "1. Year Published\n";
+    cout << "2. Max Player Count\n";
+    cout << "0. Cancel (Don't sort)\n";
 
-    // Bubble Sort Algorithm
-    for (int i = 0; i < filtered.size() - 1; i++) {
-        for (int j = 0; j < filtered.size() - i - 1; j++) {
-            bool swapNeeded = false;
-            if (sortChoice == 1) {
-                if (filtered.get(j).getYear() > filtered.get(j + 1).getYear()) swapNeeded = true;
-            }
-            else {
-                if (filtered.get(j).getMaxPlayers() > filtered.get(j + 1).getMaxPlayers()) swapNeeded = true;
-            }
+    // Validate sort choice: must be 0, 1, or 2
+    int sortChoice = getValidInt("Choice: ", 0, 2);
 
-            if (swapNeeded) {
-                Game temp = filtered.get(j);
-                *filtered.getPtr(j) = filtered.get(j + 1);
-                *filtered.getPtr(j + 1) = temp;
+    // If user picks 0, just show the table without sorting
+    if (sortChoice != 0) {
+
+
+  
+
+        // Bubble Sort Algorithm
+        for (int i = 0; i < filtered.size() - 1; i++) {
+            for (int j = 0; j < filtered.size() - i - 1; j++) {
+                bool swapNeeded = false;
+
+                if (sortChoice == 1) {
+                    if (filtered.get(j).getYear() > filtered.get(j + 1).getYear())
+                        swapNeeded = true;
+                }
+                else if (sortChoice == 2) {
+                    if (filtered.get(j).getMaxPlayers() > filtered.get(j + 1).getMaxPlayers())
+                        swapNeeded = true;
+                }
+
+                if (swapNeeded) {
+                    Game temp = filtered.get(j);
+                    *filtered.getPtr(j) = filtered.get(j + 1);
+                    *filtered.getPtr(j + 1) = temp;
+                }
             }
         }
     }

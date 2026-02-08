@@ -45,7 +45,7 @@
     <ClCompile Include="MemberMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AllUsersMenu.cpp">
+    <ClCompile Include="BrowseHistory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,5 +77,18 @@
     <ClInclude Include="UserDynamicArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BrowseHistory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Review.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="borrow_records.csv" />
+    <None Include="browse_history.csv" />
+    <None Include="games.csv" />
+    <None Include="reviews.csv" />
+    <None Include="users.csv" />
   </ItemGroup>
 </Project>

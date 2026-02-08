@@ -14,34 +14,41 @@ using namespace std;
 static int getValidMenuChoice(int minChoice, int maxChoice) {
     int choice;
     while (true) {
-        cout << "Choice: ";
-        if (cin >> choice && choice >= minChoice && choice <= maxChoice) {
-            cin.ignore();
-            return choice;
+        cout << "Choice (" << minChoice << "-" << maxChoice << "): ";
+        if (cin >> choice) {
+            if (choice >= minChoice && choice <= maxChoice) {
+                cin.ignore(1000, '\n'); // Clear everything after the number
+                return choice;
+            }
         }
-        else {
-            cout << "Invalid input. Please enter a number between " << minChoice << " and " << maxChoice << ".\n";
-            cin.clear();
-            cin.ignore(1000, '\n');
-        }
+
+        // If we reach here, input was either not a number or out of range
+        cout << "[INVALID] Please enter a number between " << minChoice << " and " << maxChoice << ".\n";
+        cin.clear();
+        cin.ignore(1000, '\n');
     }
 }
-
 // Validation for User ID input
 static string getValidUserID() {
     string userID;
     while (true) {
         cout << "Enter User ID: ";
-        cin >> userID;
-        cin.ignore();
+        getline(cin, userID); // This captures the 'Enter' key immediately
 
-        if (userID.empty()) {
-            cout << "User ID cannot be empty. Please try again.\n";
+        // 1. Check if the string is empty or just whitespace
+        if (userID.empty() || userID.find_first_not_of(" \t\n\r") == string::npos) {
+            cout << "[ERROR] User ID cannot be empty. Please try again.\n";
             continue;
         }
 
-        if (userID.length() > 20) {
-            cout << "User ID is too long. Maximum 20 characters allowed.\n";
+        // 2. Length Check
+        if (userID.length() < 3 || userID.length() > 10) {
+            cout << "[ERROR] User ID must be between 3 and 10 characters.\n";
+            continue;
+        }
+
+        if (userID.find(' ') != string::npos) {
+            cout << "[ERROR] User ID cannot contain spaces.\n";
             continue;
         }
 
@@ -111,30 +118,35 @@ int main() {
             break;
         }
         case 1: {
-            string userID = getValidUserID();
-            User* u = users.findByUserID(userID);
+            User* u = nullptr;
+            int attempts = 0;
 
-            if (u == nullptr) {
-                cout << "[ERROR] Invalid User ID. No user found with ID: " << userID << "\n";
-                break;
+            while (u == nullptr && attempts < 3) {
+                string userID = getValidUserID();
+                u = users.findByUserID(userID);
+
+                if (u == nullptr) {
+                    attempts++;
+                    cout << "[ERROR] Invalid User ID. (" << (3 - attempts) << " attempts remaining)\n";
+                }
             }
 
-            cout << "Login successful.\nWelcome, " << u->getName() << "!\n";
-
-            if (u->isAdmin()) {
-                AdminMenu::show(games, users, records);
+            if (u != nullptr) {
+                cout << "\nLogin successful. Welcome, " << u->getName() << "!\n";
+                if (u->isAdmin()) {
+                    AdminMenu::show(games, users, records);
+                }
+                else {
+                    MemberMenu::show(*u, games, records);
+                }
             }
             else {
-                MemberMenu::show(*u, games, records);
+                cout << "[INFO] Returning to main menu.\n";
             }
             break;
-        }
-        default:
-            cout << "An unexpected error occurred. Please try again.\n";
-            break;
+            }
         }
     }
-
     // --- STEP 3: Saving data before exit ---
     cout << "\nSaving data...\n";
 

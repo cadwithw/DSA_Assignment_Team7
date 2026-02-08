@@ -152,7 +152,6 @@
     <None Include="borrow_records.csv" />
     <None Include="browse_history.csv" />
     <None Include="games.csv" />
-    <None Include="play_sessions.csv" />
     <None Include="reviews.csv" />
     <None Include="users.csv" />
   </ItemGroup>
