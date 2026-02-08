@@ -149,23 +149,22 @@ void AdminMenu::handleRemoveGame(GameDynamicArray& games) {
 /**
  * Logic for adding new members with unique ID check.
  */
+ /**
+  * Logic for adding new members with unique ID check.
+  */
 void AdminMenu::handleAddMember(UserDynamicArray& users) {
     string userID, name;
     cout << "Enter new User ID: ";
     cin >> userID;
 
+    // Check if user already exists
     if (users.findByUserID(userID) != nullptr) {
         cout << "[ERROR] User ID already exists.\n";
         return;
     }
-            if (records.isEmpty()) {
-                cout << "No borrowing records have been created yet.\n";
-            }
-            else {
-                records.printAll(&games);
-            }
 
-    cin.ignore();
+
+    cin.ignore(1000, '\n'); // Clean buffer before getline
     cout << "Enter Name: ";
     getline(cin, name);
 

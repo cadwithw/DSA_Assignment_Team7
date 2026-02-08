@@ -76,11 +76,13 @@ Game::~Game() {
 
 ReviewNode* Game::copyTree(ReviewNode* node) const {
     if (node == nullptr) return nullptr;
-    
-    ReviewNode* newNode = new ReviewNode(node->memberName, node->comment, node->rating);
+
+    // Pass 4 arguments: ID, Name, Comment, Rating
+    ReviewNode* newNode = new ReviewNode(node->gameID, node->memberName, node->comment, node->rating);
+
     newNode->left = copyTree(node->left);
     newNode->right = copyTree(node->right);
-    
+
     return newNode;
 }
 
