@@ -210,3 +210,10 @@ void Game::print() const {
     displayReviews();
     cout << "-------------------------------" << endl;
 }
+
+/** Prints game details without reviews (for search results display). */
+void Game::printWithoutReviews() const {
+    cout << "ID: " << gameID << " | Title: " << title << endl;
+    cout << "Players: " << minPlayers << "-" << maxPlayers << " | Year: " << year << endl;
+    cout << "Stock: " << availableCopies << "/" << totalCopies << endl;
+}
