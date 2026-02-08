@@ -3,6 +3,8 @@
 
 #include "BorrowRecord.h"
 
+class GameDynamicArray;
+
 class BorrowLinkedList {
 private:
     struct Node {
@@ -19,8 +21,8 @@ public:
     void insertFront(const BorrowRecord& br);
     BorrowRecord* findActiveBorrow(const string& userID, const string& gameID);
 
-    void printAll() const;
-    void printByUser(const string& userID) const;
+    void printAll(GameDynamicArray* games = nullptr) const;
+    void printByUser(const string& userID, GameDynamicArray* games = nullptr) const;
     void writeToCSV(ofstream& file) const;
     bool isEmpty() const { return head == nullptr; }
     

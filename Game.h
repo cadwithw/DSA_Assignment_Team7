@@ -36,6 +36,9 @@ private:
     ReviewNode* insertRecursive(ReviewNode* node, string name, string comm, int rate);
     void printInOrder(ReviewNode* node) const;
     void clearTree(ReviewNode* node);
+    
+    // Helper to deep copy BST
+    ReviewNode* copyTree(ReviewNode* node) const;
 
     // Recursive Helper for saving to CSV
     void saveReviewsRecursive(ofstream& file, ReviewNode* node) const;
@@ -43,6 +46,8 @@ private:
 public:
     Game();
     Game(string id, string t, int minP, int maxP, int y, int total, int avail);
+    Game(const Game& other);
+    Game& operator=(const Game& other);
     ~Game();
 
     // Getters

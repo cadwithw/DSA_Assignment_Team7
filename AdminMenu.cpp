@@ -158,6 +158,12 @@ void AdminMenu::handleAddMember(UserDynamicArray& users) {
         cout << "[ERROR] User ID already exists.\n";
         return;
     }
+            if (records.isEmpty()) {
+                cout << "No borrowing records have been created yet.\n";
+            }
+            else {
+                records.printAll(&games);
+            }
 
     cin.ignore();
     cout << "Enter Name: ";

@@ -32,6 +32,34 @@ Game::Game(string id, string t, int minP, int maxP, int y, int total, int avail)
     reviewRoot = nullptr;
 }
 
+Game::Game(const Game& other) {
+    gameID = other.gameID;
+    title = other.title;
+    minPlayers = other.minPlayers;
+    maxPlayers = other.maxPlayers;
+    year = other.year;
+    totalCopies = other.totalCopies;
+    availableCopies = other.availableCopies;
+    reviewRoot = copyTree(other.reviewRoot);
+}
+
+Game& Game::operator=(const Game& other) {
+    if (this == &other) return *this;
+    
+    clearTree(reviewRoot);
+    
+    gameID = other.gameID;
+    title = other.title;
+    minPlayers = other.minPlayers;
+    maxPlayers = other.maxPlayers;
+    year = other.year;
+    totalCopies = other.totalCopies;
+    availableCopies = other.availableCopies;
+    reviewRoot = copyTree(other.reviewRoot);
+    
+    return *this;
+}
+
 Game::~Game() {
     clearTree(reviewRoot);
 }
@@ -45,6 +73,17 @@ Game::~Game() {
  * @param rate The numerical rating (1-5).
  * @return The updated pointer to the subtree root.
  */
+
+ReviewNode* Game::copyTree(ReviewNode* node) const {
+    if (node == nullptr) return nullptr;
+    
+    ReviewNode* newNode = new ReviewNode(node->memberName, node->comment, node->rating);
+    newNode->left = copyTree(node->left);
+    newNode->right = copyTree(node->right);
+    
+    return newNode;
+}
+
 ReviewNode* Game::insertRecursive(ReviewNode* node, string name, string comm, int rate) {
     if (node == nullptr) {
         return new ReviewNode(gameID, name, comm, rate); // Creation
@@ -84,8 +123,9 @@ void Game::saveReviewsRecursive(ofstream& file, ReviewNode* node) const {
 
     // Write in format: GameID,MemberName,Rating,Comment
     // Pre-order (Root, Left, Right) is best for rebuilding the tree
+    // Quote the comment field to handle comments containing commas
     file << gameID << "," << node->memberName << ","
-        << node->rating << "," << node->comment << "\n";
+        << node->rating << ",\"" << node->comment << "\"\n";
 
     saveReviewsRecursive(file, node->left);
     saveReviewsRecursive(file, node->right);

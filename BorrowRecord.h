@@ -25,7 +25,7 @@ public:
     bool isReturned() const;
     void setReturnDate(string rDate);
 
-    void print() const;
+    void print(const string& gameName = "Unknown") const;
 };
 
 #endif

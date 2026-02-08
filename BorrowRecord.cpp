@@ -28,9 +28,9 @@ bool BorrowRecord::isReturned() const { return returnDate != ""; }
 
 void BorrowRecord::setReturnDate(string rDate) { returnDate = rDate; }
 
-void BorrowRecord::print() const {
+void BorrowRecord::print(const string& gameName) const {
     cout << "Record ID: " << recordID << "\n";
-    cout << "User ID: " << userID << "\n";
+    cout << "Game: " << gameName << "\n";
     cout << "Game ID: " << gameID << "\n";
     cout << "Borrow Date: " << borrowDate << "\n";
     cout << "Return Date: " << (returnDate == "" ? "(not returned)" : returnDate) << "\n";
