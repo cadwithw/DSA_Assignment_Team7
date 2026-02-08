@@ -376,8 +376,8 @@ static void reviewGames(GameDynamicArray& games) {
     cout << "Review Games - Not yet implemented.\n";
 }
 
-// 5. Record a Game
-static void recordGame(GameDynamicArray& games) {
+// 5. Trending Games
+static void trendingGames(GameDynamicArray& games) {
     cout << "\n--- Record a Game ---\n";
     cout << "Record a Game - Not yet implemented.\n";
 }
@@ -392,7 +392,6 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
         cout << "2. Return a Game\n";
         cout << "3. Display Summary\n";
         cout << "4. Review Games\n";
-        cout << "5. Record a Game\n";
         cout << "0. Logout\n";
 
         choice = getValidChoice(0, 6);
@@ -409,9 +408,6 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
             break;
         case 4:
             reviewGames(games);
-            break;
-        case 5:
-            recordGame(games);
             break;
         case 0:
             cout << "Logging out...\n";

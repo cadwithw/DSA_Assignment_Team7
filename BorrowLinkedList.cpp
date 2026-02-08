@@ -69,39 +69,3 @@ void BorrowLinkedList::writeToCSV(ofstream& file) const {
         cur = cur->next;
     }
 }
-
-int BorrowLinkedList::countBorrowsByUser(const string& userID) const {
-    Node* cur = head;
-    int count = 0;
-    while (cur != nullptr) {
-        if (cur->data.getUserID() == userID) {
-            count++;
-        }
-        cur = cur->next;
-    }
-    return count;
-}
-
-int BorrowLinkedList::countReturnsByUser(const string& userID) const {
-    Node* cur = head;
-    int count = 0;
-    while (cur != nullptr) {
-        if (cur->data.getUserID() == userID && cur->data.isReturned()) {
-            count++;
-        }
-        cur = cur->next;
-    }
-    return count;
-}
-
-int BorrowLinkedList::countActiveBorrowsByUser(const string& userID) const {
-    Node* cur = head;
-    int count = 0;
-    while (cur != nullptr) {
-        if (cur->data.getUserID() == userID && !cur->data.isReturned()) {
-            count++;
-        }
-        cur = cur->next;
-    }
-    return count;
-}
