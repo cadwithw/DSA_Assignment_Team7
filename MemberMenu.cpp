@@ -299,7 +299,7 @@ static void borrowGame(const User& member, GameDynamicArray& games, BorrowLinked
         cout << "\n--- Search Results ---\n";
         for (int i = 0; i < searchResults.size(); i++) {
             cout << "[" << (i + 1) << "] ";
-            searchResults.get(i).print();
+            searchResults.get(i).printWithoutReviews();
             cout << "-----------------------\n";
         }
 

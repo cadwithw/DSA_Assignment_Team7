@@ -65,6 +65,7 @@ public:
     void decrementAvailable();
 
     void print() const;
+    void printWithoutReviews() const;  // New method for search results
 
     // Review Interface
     void addReview(string name, string comm, int rate);
