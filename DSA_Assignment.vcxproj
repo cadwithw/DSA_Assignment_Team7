@@ -126,6 +126,7 @@
     <ClCompile Include="AdminMenu.cpp" />
     <ClCompile Include="BorrowLinkedList.cpp" />
     <ClCompile Include="BorrowRecord.cpp" />
+    <ClCompile Include="BrowseHistory.cpp" />
     <ClCompile Include="CSVHandler.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameDynamicArray.cpp" />
@@ -138,15 +139,18 @@
     <ClInclude Include="AdminMenu.h" />
     <ClInclude Include="BorrowLinkedList.h" />
     <ClInclude Include="BorrowRecord.h" />
+    <ClInclude Include="BrowseHistory.h" />
     <ClInclude Include="CSVHandler.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameDynamicArray.h" />
     <ClInclude Include="MemberMenu.h" />
+    <ClInclude Include="Review.h" />
     <ClInclude Include="User.h" />
     <ClInclude Include="UserDynamicArray.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="borrow_records.csv" />
+    <None Include="browse_history.csv" />
     <None Include="games.csv" />
     <None Include="play_sessions.csv" />
     <None Include="reviews.csv" />

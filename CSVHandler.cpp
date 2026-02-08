@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -288,5 +289,173 @@ bool CSVHandler::saveBorrowRecords(const string& filename, BorrowLinkedList& rec
     records.writeToCSV(file);
 
     file.close();
+    return true;
+}
+bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        // Not an error; file might not exist yet on first run
+        return false; 
+    }
+
+    string line;
+    // Skip header: gameID,memberName,rating,comment
+    if (!getline(file, line)) return false;
+
+    while (getline(file, line)) {
+        if (trim(line) == "") continue;
+
+        stringstream ss(line);
+        string gID, name, rateStr, comm;
+
+        // Use parseCSVField to properly handle quoted fields containing commas
+        gID = parseCSVField(ss);
+        name = parseCSVField(ss);
+        rateStr = parseCSVField(ss);
+        comm = parseCSVField(ss);
+
+        gID = trim(gID);
+        name = trim(name);
+        int rate = 0;
+        for (char c : trim(rateStr)) if (c >= '0' && c <= '9') rate = rate * 10 + (c - '0');
+        comm = trim(comm);
+
+        // Find the game pointer and add the review to its BST
+        for (int i = 0; i < games.size(); i++) {
+            if (games.get(i).getGameID() == gID) {
+                // We use getPtr to ensure we are modifying the actual game in the array
+                games.getPtr(i)->addReview(name, comm, rate);
+                break;
+            }
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+bool CSVHandler::saveReviews(const string& filename, GameDynamicArray& games) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cout << "[ERROR] Unable to write reviews to " << filename << "\n";
+        return false;
+    }
+
+    // Header row
+    file << "gameID,memberName,rating,comment\n";
+
+    for (int i = 0; i < games.size(); i++) {
+        // This calls the Game::saveReviews method we wrote earlier, 
+        // which performs the Pre-Order traversal of the BST.
+        games.get(i).saveReviews(file);
+    }
+
+    file.close();
+    return true;
+}
+
+bool CSVHandler::loadBrowseHistory(const string& filename, const string& userID, 
+                                   BrowseHistory& history, GameDynamicArray& games) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        // File might not exist yet; this is okay
+        return false;
+    }
+
+    string line;
+    // Skip header: userID,gameID,viewedDate
+    if (!getline(file, line)) {
+        file.close();
+        return false;
+    }
+
+    while (getline(file, line)) {
+        if (trim(line) == "") continue;
+
+        stringstream ss(line);
+        string loadedUserID, gameID, viewedDate;
+
+        getline(ss, loadedUserID, ',');
+        getline(ss, gameID, ',');
+        getline(ss, viewedDate, ',');
+
+        loadedUserID = trim(loadedUserID);
+        gameID = trim(gameID);
+        viewedDate = trim(viewedDate);
+
+        // Only load records for this specific user
+        if (loadedUserID == userID) {
+            Game* game = games.findByGameID(gameID);
+            if (game != nullptr) {
+                history.enqueue(*game, viewedDate);
+            }
+        }
+    }
+
+    file.close();
+    return true;
+}
+
+bool CSVHandler::saveBrowseHistory(const string& filename, const string& userID, 
+                                   BrowseHistory& history) {
+    // Read existing file and preserve other users' history
+    ifstream inFile(filename);
+    vector<string> allLines;
+    
+    if (inFile.is_open()) {
+        string line;
+        if (getline(inFile, line)) {
+            allLines.push_back(line); // Save header
+        }
+        
+        while (getline(inFile, line)) {
+            if (trim(line) == "") continue;
+            
+            stringstream ss(line);
+            string lineUserID;
+            getline(ss, lineUserID, ',');
+            lineUserID = trim(lineUserID);
+            
+            // Keep records from other users
+            if (lineUserID != userID) {
+                allLines.push_back(line);
+            }
+        }
+        inFile.close();
+    }
+
+    // Write back all lines plus new history for this user
+    ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        cout << "[ERROR] Unable to write to " << filename << "\n";
+        return false;
+    }
+
+    // Write header if file was empty
+    if (allLines.empty()) {
+        outFile << "userID,gameID,viewedDate\n";
+    } else {
+        outFile << allLines[0] << "\n"; // Write existing header
+    }
+
+    // Write other users' records
+    for (int i = 1; i < (int)allLines.size(); i++) {
+        outFile << allLines[i] << "\n";
+    }
+    
+    // Write current user's browse history from the BrowseHistory queue
+    // We need to traverse the queue and write each entry
+    int historySize = history.getSize();
+    for (int i = 0; i < historySize; i++) {
+        Game* game = history.getGameAt(i);
+        if (game != nullptr) {
+            string viewedDate = history.getViewedDateAt(i);
+            outFile << userID << ","
+                    << game->getGameID() << ","
+                    << viewedDate << "\n";
+        }
+    }
+
+    outFile.close();
     return true;
 }
