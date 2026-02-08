@@ -1,3 +1,16 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden 
+ * Group:7 
+ * Student IDs: S10267643, S10267163
+ * * Highlighted Features:
+ * - Review System: Implemented using a Binary Search Tree (BST) for O(log n)
+ * efficiency and sorted data display.
+ * - Persistence: Custom non-STL CSV serialization/deserialization logic.
+ * - Dynamic Memory Management: Custom Dynamic Array and Linked List structures.]
+ *****************************************************************************/
+
+
+
 #include "Game.h"
 #include <iostream>
 
@@ -24,19 +37,32 @@ Game::~Game() {
 }
 
 // --- BST LOGIC ---
-
+/**
+ * Inserts a new review into the BST recursively.
+ * @param node The current root of the subtree.
+ * @param name The name of the member writing the review.
+ * @param comm The text content of the review.
+ * @param rate The numerical rating (1-5).
+ * @return The updated pointer to the subtree root.
+ */
 ReviewNode* Game::insertRecursive(ReviewNode* node, string name, string comm, int rate) {
-    if (node == nullptr) return new ReviewNode(name, comm, rate);
-
-    // Sort by rating: lower left, higher/equal right
+    if (node == nullptr) {
+        return new ReviewNode(gameID, name, comm, rate); // Creation
+    }
+    // Accessing node->rating is only safe AFTER the nullptr check above
     if (rate < node->rating)
         node->left = insertRecursive(node->left, name, comm, rate);
     else
         node->right = insertRecursive(node->right, name, comm, rate);
-
     return node;
 }
 
+
+/**
+ * Performs an In-Order traversal to print reviews sorted by rating.
+ * @param node The current node being visited.
+ * @return void
+ */
 void Game::printInOrder(ReviewNode* node) const {
     if (node == nullptr) return;
     printInOrder(node->left);
@@ -65,6 +91,12 @@ void Game::saveReviewsRecursive(ofstream& file, ReviewNode* node) const {
     saveReviewsRecursive(file, node->right);
 }
 
+/**
+ * Saves the BST structure to a file using Pre-Order Traversal (Root-Left-Right).
+ * This ensures the tree shape is preserved when reloaded.
+ * @param file The output file stream to write to.
+ * @return void
+ */
 void Game::saveReviews(ofstream& file) const {
     if (reviewRoot != nullptr) {
         saveReviewsRecursive(file, reviewRoot);
@@ -82,7 +114,6 @@ void Game::displayReviews() const {
     else printInOrder(reviewRoot);
 }
 
-// --- EXISTING GETTERS/SETTERS ---
 
 string Game::getGameID() const { return gameID; }
 string Game::getTitle() const { return title; }
