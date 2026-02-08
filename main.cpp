@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Unified Data Loading: Initializes all data structures from CSV files and
+ * reconstructs game availability based on active borrow records at startup.
+ * - Role-Based Access Control: Directs users to Admin or Member menus based on
+ * their role, restricting sensitive operations to administrators only.
+ * - Graceful Shutdown: Automatically persists all data changes (games, users,
+ * records, reviews, browse history) back to CSV files before exiting.
+ * - Validation-First Login: Implements attempt-limited user authentication with
+ * three tries before returning to main menu for security.
+ *****************************************************************************/
+
 #include <iostream>
 #include <string>
 using namespace std;
