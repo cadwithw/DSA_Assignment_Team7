@@ -370,12 +370,6 @@ static void displaySummary(const User& member, BorrowLinkedList& records) {
     records.printByUser(userID);
 }
 
-// 4. Review Games
-static void reviewGames(GameDynamicArray& games) {
-    cout << "\n--- Review Games ---\n";
-    cout << "Review Games - Not yet implemented.\n";
-}
-
 // 5. Record a Game
 static void recordGame(GameDynamicArray& games) {
     cout << "\n--- Record a Game ---\n";
@@ -393,6 +387,7 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
         cout << "3. Display Summary\n";
         cout << "4. Review Games\n";
         cout << "5. Record a Game\n";
+        cout << "6. View Review \n";
         cout << "0. Logout\n";
 
         choice = getValidChoice(0, 6);
@@ -407,11 +402,87 @@ void MemberMenu::show(const User& member, GameDynamicArray& games, BorrowLinkedL
         case 3:
             displaySummary(member, records);
             break;
-        case 4:
-            reviewGames(games);
+        case 4: {
+            string targetID;
+            cout << "\n--- Write a Game Review ---\n";
+
+            // Validate Game ID is not empty
+            do {
+                cout << "Enter Game ID to review: ";
+                getline(cin, targetID);
+                if (targetID.empty()) cout << "[INVALID] ID cannot be empty.\n";
+            } while (targetID.empty());
+
+            Game* targetGame = games.findByGameID(targetID);
+
+            if (targetGame != nullptr) {
+                int rating;
+                string comment;
+
+                // --- Rating Validation ---
+                while (true) {
+                    cout << "Rating (1-5 stars): ";
+                    if (cin >> rating && rating >= 1 && rating <= 5) {
+                        cin.ignore(1000, '\n');
+                        break;
+                    }
+                    else {
+                        cout << "[INVALID] Please enter a number 1-5.\n";
+                        cin.clear();
+                        cin.ignore(1000, '\n');
+                    }
+                }
+
+                // --- Comment Validation (Ensures it's not empty) ---
+                while (true) {
+                    cout << "Write your review: ";
+                    getline(cin, comment);
+
+                    // Check if they just pressed enter
+                    if (comment.length() > 0 && comment[0] != ' ') {
+                        break;
+                    }
+                    cout << "[INVALID] Review comment cannot be empty.\n";
+                }
+
+                targetGame->addReview(member.getName(), comment, rating);
+                CSVHandler::saveReviews("reviews.csv", games);
+
+                cout << "\n[SUCCESS] Your review has been submitted!\n";
+            }
+            else {
+                cout << "[ERROR] Game ID not found.\n";
+            }
             break;
+        }
         case 5:
             recordGame(games);
+            break;
+        
+        case 6: { // View Reviews for a Specific Game
+            string targetID;
+            cout << "\n--- View Game Reviews ---\n";
+            cout << "Enter Game ID: ";
+            cin >> targetID;
+            cin.ignore();
+
+            Game* targetGame = games.findByGameID(targetID);
+            if (targetGame != nullptr) {
+                cout << "\n=========================================";
+                cout << "\nReviews for: " << targetGame->getTitle();
+                cout << "\n=========================================\n";
+
+                // This calls the BST In-Order Traversal we wrote
+                targetGame->displayReviews();
+
+                cout << "=========================================\n";
+            }
+            else {
+                cout << "[ERROR] Game ID " << targetID << " not found.\n";
+            }
+            break;
+        }
+            
             break;
         case 0:
             cout << "Logging out...\n";

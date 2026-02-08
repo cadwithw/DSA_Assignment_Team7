@@ -18,6 +18,8 @@ public:
 
     static bool loadBorrowRecords(const string& filename, BorrowLinkedList& records);
     static bool saveBorrowRecords(const string& filename, BorrowLinkedList& records);
+    static bool loadReviews(const string& filename, GameDynamicArray& games);
+    static bool saveReviews(const string& filename, GameDynamicArray& games);
 };
 
 #endif

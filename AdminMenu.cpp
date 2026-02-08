@@ -14,6 +14,50 @@ static string intToStr(int value) {
     return res;
 }
 
+static void printColumn(string text, int width) {
+    cout << text;
+    for (int i = text.length(); i < width; i++) {
+        cout << " ";
+    }
+}
+
+void displayGamesTable(GameDynamicArray& list) {
+    if (list.size() == 0) {
+        cout << "\n>>> No games found matching your criteria. <<<\n";
+        return;
+    }
+
+
+    cout << "\n" << string(75, '=') << endl;
+    printColumn("ID", 8);
+    printColumn("Title", 35);
+    printColumn("Players", 12);
+    printColumn("Year", 8);
+    cout << "Stock" << endl;
+    cout << string(75, '-') << endl;
+
+    for (int i = 0; i < list.size(); i++) {
+        Game g = list.get(i);
+
+        printColumn(g.getGameID(), 8);
+
+
+        string displayTitle = g.getTitle();
+        if (displayTitle.length() > 32) {
+            displayTitle = displayTitle.substr(0, 29) + "...";
+        }
+        printColumn(displayTitle, 35);
+
+        string playerRange = intToStr(g.getMinPlayers()) + "-" + intToStr(g.getMaxPlayers());
+        printColumn(playerRange, 12);
+
+        printColumn(intToStr(g.getYear()), 8);
+
+        cout << g.getAvailableCopies() << " / " << g.getTotalCopies() << endl;
+    }
+    cout << string(75, '=') << endl;
+}
+
 void AdminMenu::show(GameDynamicArray& games,
     UserDynamicArray& users,
     BorrowLinkedList& records) {
@@ -210,9 +254,7 @@ void AdminMenu::show(GameDynamicArray& games,
             }
 
             cout << "\n--- Sorted Results ---\n";
-            for (int i = 0; i < filtered.size(); i++) {
-                filtered.get(i).print();
-            }
+            displayGamesTable(filtered);
             break;
         }
 

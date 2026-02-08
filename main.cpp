@@ -18,7 +18,8 @@ static int getValidMenuChoice(int minChoice, int maxChoice) {
         if (cin >> choice && choice >= minChoice && choice <= maxChoice) {
             cin.ignore();
             return choice;
-        } else {
+        }
+        else {
             cout << "Invalid input. Please enter a number between " << minChoice << " and " << maxChoice << ".\n";
             cin.clear();
             cin.ignore(1000, '\n');
@@ -53,29 +54,30 @@ int main() {
     UserDynamicArray users;
     BorrowLinkedList records;
 
-    // Load CSV data
+    // --- STEP 1: Load CSV data ---
     if (!CSVHandler::loadGames("games.csv", games)) {
         cout << "[WARNING] Could not load games.csv. Continuing with empty game library.\n";
     }
-    
+
+    // NEW: Load Reviews immediately after games are loaded
+    if (!CSVHandler::loadReviews("reviews.csv", games)) {
+        cout << "[INFO] No reviews.csv found or file is empty.\n";
+    }
+
     if (!CSVHandler::loadUsers("users.csv", users)) {
         cout << "[WARNING] Could not load users.csv. Continuing with no users.\n";
     }
-    
+
     if (!CSVHandler::loadBorrowRecords("borrow_records.csv", records)) {
         cout << "[WARNING] Could not load borrow_records.csv. Continuing with no records.\n";
     }
 
-    // Adjust game availability based on active borrow records
-    // For each game, count unreturned borrows and decrease availability accordingly
+    // --- STEP 2: Logic for Game Availability ---
     for (int i = 0; i < games.size(); i++) {
         Game* game = games.getPtr(i);
         string gameID = game->getGameID();
-        
-        // Count active (unreturned) borrows for this game
+
         int activeBorrowCount = 0;
-        
-        // We need to iterate through all users and check for active borrows
         for (int userIdx = 0; userIdx < users.size(); userIdx++) {
             User* user = users.getPtr(userIdx);
             BorrowRecord* activeBorrow = records.findActiveBorrow(user->getUserID(), gameID);
@@ -83,8 +85,7 @@ int main() {
                 activeBorrowCount++;
             }
         }
-        
-        // Decrease available copies based on active borrows
+
         for (int j = 0; j < activeBorrowCount; j++) {
             game->decrementAvailable();
         }
@@ -104,54 +105,65 @@ int main() {
         int choice = getValidMenuChoice(0, 1);
 
         switch (choice) {
-            case 0: {
-                cout << "Exiting application...\n";
-                exitProgram = true;
+        case 0: {
+            cout << "Exiting application...\n";
+            exitProgram = true;
+            break;
+        }
+        case 1: {
+            string userID = getValidUserID();
+            User* u = users.findByUserID(userID);
+
+            if (u == nullptr) {
+                cout << "[ERROR] Invalid User ID. No user found with ID: " << userID << "\n";
                 break;
             }
-            case 1: {
-                string userID = getValidUserID();
 
-                User* u = users.findByUserID(userID);
+            cout << "Login successful.\nWelcome, " << u->getName() << "!\n";
 
-                if (u == nullptr) {
-                    cout << "[ERROR] Invalid User ID. No user found with ID: " << userID << "\n";
-                    break;
-                }
-
-                cout << "Login successful.\nWelcome, " << u->getName() << "!\n";
-
-                if (u->isAdmin()) {
-                    AdminMenu::show(games, users, records);
-                } else {
-                    MemberMenu::show(*u, games, records);
-                }
-                break;
+            if (u->isAdmin()) {
+                AdminMenu::show(games, users, records);
             }
-            default:
-                cout << "An unexpected error occurred. Please try again.\n";
-                break;
+            else {
+                MemberMenu::show(*u, games, records);
+            }
+            break;
+        }
+        default:
+            cout << "An unexpected error occurred. Please try again.\n";
+            break;
         }
     }
 
+    // --- STEP 3: Saving data before exit ---
     cout << "\nSaving data...\n";
 
-    // Save before exit
     if (!CSVHandler::saveGames("games.csv", games)) {
         cout << "[ERROR] Failed to save games.csv\n";
-    } else {
+    }
+    else {
         cout << "[OK] Games saved successfully.\n";
+    }
+
+    // NEW: Save Reviews BST
+    if (!CSVHandler::saveReviews("reviews.csv", games)) {
+        cout << "[ERROR] Failed to save reviews.csv\n";
+    }
+    else {
+        cout << "[OK] Reviews saved successfully.\n";
     }
 
     if (!CSVHandler::saveUsers("users.csv", users)) {
         cout << "[ERROR] Failed to save users.csv\n";
-    } else {
+    }
+    else {
         cout << "[OK] Users saved successfully.\n";
     }
 
     if (!CSVHandler::saveBorrowRecords("borrow_records.csv", records)) {
         cout << "[ERROR] Failed to save borrow_records.csv\n";
-    } else {
+    }
+    else {
         cout << "[OK] Borrow records saved successfully.\n";
     }
 
