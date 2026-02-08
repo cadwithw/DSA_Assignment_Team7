@@ -1,11 +1,26 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Sorting: Implementation of the Bubble Sort algorithm to organize filtered
+ * game lists by year or player count.
+ * - Input Validation: Robust error handling for integer ranges and string lengths.
+ * - Table Rendering: Custom-aligned console output for professional reporting.
+ * - Data Integrity: Automatic CSV synchronization after modification (Add/Remove).
+ *****************************************************************************/
+
 #include "AdminMenu.h"
 #include "CSVHandler.h"
 #include <iostream>
 
 using namespace std;
 
-
- 
+/**
+ * Helper function to convert an integer to a string without using std::to_string.
+ * @param value The integer to convert.
+ * @return The string representation of the integer.
+ */
 static string intToStr(int value) {
     if (value == 0) return "0";
     string res = "";
@@ -16,6 +31,11 @@ static string intToStr(int value) {
     return res;
 }
 
+/**
+ * Utility to print a string with a fixed trailing width for table alignment.
+ * @param text The string to display.
+ * @param width The total width of the column.
+ */
 static void printColumn(string text, int width) {
     cout << text;
     for (int i = text.length(); i < width; i++) {
@@ -23,19 +43,26 @@ static void printColumn(string text, int width) {
     }
 }
 
+/**
+ * Forces the user to provide a valid integer within a specified range.
+ * Clears the buffer and handles non-numeric input gracefully.
+ * @param prompt The message shown to the user.
+ * @param minVal Minimum allowed value.
+ * @param maxVal Maximum allowed value.
+ * @return A validated integer.
+ */
 static int getValidInt(string prompt, int minVal, int maxVal) {
     int val;
     while (true) {
         cout << prompt;
-        // Check if input is a number AND within the specific range
         if (cin >> val && val >= minVal && val <= maxVal) {
             cin.ignore(1000, '\n');
             return val;
         }
         else {
             cout << "[INVALID] Please enter a number between " << minVal << " and " << maxVal << ".\n";
-            cin.clear();           // Reset error flags
-            cin.ignore(1000, '\n'); // Discard bad input
+            cin.clear();
+            cin.ignore(1000, '\n');
         }
     }
 }
@@ -44,7 +71,10 @@ static int getValidInt(string prompt, int minVal, int maxVal) {
 
 /**
  * Main entry point for the Admin interface.
- * Acts as a controller, delegating tasks to specific handler functions.
+ * Displays the menu and delegates tasks based on user choice.
+ * @param games Reference to the game inventory array.
+ * @param users Reference to the user directory array.
+ * @param records Reference to the borrowing record linked list.
  */
 void AdminMenu::show(GameDynamicArray& games, UserDynamicArray& users, BorrowLinkedList& records) {
     int choice = -1;
@@ -93,7 +123,9 @@ void AdminMenu::show(GameDynamicArray& games, UserDynamicArray& users, BorrowLin
 }
 
 /**
- * Logic for adding a new game, including ID generation and validation.
+ * Handles the logic for adding a new game to the system.
+ * Includes automated ID generation and field validation.
+ * @param games Reference to the inventory to update.
  */
 void AdminMenu::handleAddGame(GameDynamicArray& games) {
     string title;
@@ -107,41 +139,33 @@ void AdminMenu::handleAddGame(GameDynamicArray& games) {
     while (true) {
         cout << "Title: ";
         getline(cin, title);
-        if (title.length() >= 2) break; // Ensure title isn't empty or a single character
+        if (title.length() >= 2) break;
         cout << "[ERROR] Title must be at least 2 characters long.\n";
     }
 
-    // Min Players: 1-20
     int minP = getValidInt("Min players (1-20): ", 1, 20);
-
-    // Max Players: must be >= minP and <= 100
     int maxP = getValidInt("Max players (" + intToStr(minP) + "-100): ", minP, 100);
-
-    // Year: 4 digits (1900 to current-ish)
     int year = getValidInt("Year published (1900-2026): ", 1900, 2026);
-
-    // Copies: 1-100
     int total = getValidInt("Total copies to add (1-100): ", 1, 100);
 
     Game newGame(id, title, minP, maxP, year, total, total);
     games.add(newGame);
-    CSVHandler::saveGames("games.csv", games); // Auto-save
+    CSVHandler::saveGames("games.csv", games);
     cout << "\n[SUCCESS] Game '" << title << "' added to inventory.\n";
 }
 
 /**
- * Logic for removing a game and updating the CSV file.
+ * Removes a game from the inventory after user confirmation.
+ * @param games Reference to the inventory to update.
  */
 void AdminMenu::handleRemoveGame(GameDynamicArray& games) {
     string id;
     cout << "Enter Game ID to remove (e.g., G001): ";
     cin >> id;
 
-    // 1. First, find if the game actually exists
     Game* g = games.findByGameID(id);
 
     if (g != nullptr) {
-        // 2. Display the game details so the user knows exactly what they are deleting
         cout << "\n[CONFIRMATION REQUIRED]" << endl;
         cout << "Are you sure you want to remove: " << g->getTitle() << " (" << id << ")?" << endl;
 
@@ -149,10 +173,9 @@ void AdminMenu::handleRemoveGame(GameDynamicArray& games) {
         while (true) {
             cout << "Type 'Y' to confirm or 'N' to cancel: ";
             cin >> confirm;
-            confirm = toupper(confirm); // Handle lowercase 'y' or 'n'
+            confirm = toupper(confirm);
 
             if (confirm == 'Y') {
-                // 3. Proceed with deletion
                 if (games.removeByGameID(id)) {
                     CSVHandler::saveGames("games.csv", games);
                     cout << "[SUCCESS] Game " << id << " removed and CSV updated.\n";
@@ -175,9 +198,10 @@ void AdminMenu::handleRemoveGame(GameDynamicArray& games) {
     }
 }
 
- /**
-  * Logic for adding new members with unique ID check.
-  */
+/**
+ * Logic for adding new members with unique ID check.
+ * @param users Reference to the user collection.
+ */
 void AdminMenu::handleAddMember(UserDynamicArray& users) {
     string userID, name;
 
@@ -208,7 +232,8 @@ void AdminMenu::handleAddMember(UserDynamicArray& users) {
 }
 
 /**
- * Logic for searching and displaying specific game details (including reviews).
+ * Searches for a game by ID and prints detailed information including reviews.
+ * @param games Reference to the inventory.
  */
 void AdminMenu::handleGameSearch(GameDynamicArray& games) {
     string id;
@@ -217,7 +242,7 @@ void AdminMenu::handleGameSearch(GameDynamicArray& games) {
 
     Game* g = games.findByGameID(id);
     if (g) {
-        g->print(); // This will also trigger the BST review display
+        g->print();
     }
     else {
         cout << "[ERROR] Game not found.\n";
@@ -225,10 +250,11 @@ void AdminMenu::handleGameSearch(GameDynamicArray& games) {
 }
 
 /**
- * Logic for filtering games by player count and sorting using Bubble Sort.
+ * Filters games based on player count and allows sorting of the result.
+ * Implements a Bubble Sort for organizing the filtered data.
+ * @param games Reference to the inventory.
  */
 void AdminMenu::handleFilterAndSort(GameDynamicArray& games) {
-    // Validate player count: must be between 1 and 100
     int players = getValidInt("Enter number of players to filter by (1-100): ", 1, 100);
 
     GameDynamicArray filtered;
@@ -250,15 +276,9 @@ void AdminMenu::handleFilterAndSort(GameDynamicArray& games) {
     cout << "2. Max Player Count\n";
     cout << "0. Cancel (Don't sort)\n";
 
-    // Validate sort choice: must be 0, 1, or 2
     int sortChoice = getValidInt("Choice: ", 0, 2);
 
-    // If user picks 0, just show the table without sorting
     if (sortChoice != 0) {
-
-
-  
-
         // Bubble Sort Algorithm
         for (int i = 0; i < filtered.size() - 1; i++) {
             for (int j = 0; j < filtered.size() - i - 1; j++) {
@@ -286,7 +306,8 @@ void AdminMenu::handleFilterAndSort(GameDynamicArray& games) {
 }
 
 /**
- * Utility for rendering a professional table view of games.
+ * Formats and renders a list of games into a tabular console view.
+ * @param list The dynamic array of games to display.
  */
 void AdminMenu::displayGamesTable(GameDynamicArray& list) {
     cout << "\n" << string(75, '=') << endl;

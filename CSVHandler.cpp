@@ -1,5 +1,19 @@
-#include "CSVHandler.h"
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Robust CSV Parsing: Manual implementation of field parsing to handle
+ * quoted strings, escaped characters, and varied delimiters.
+ * - Data Persistence: Full serialization and deserialization for Games,
+ * Users, Borrow Records, and Reviews.
+ * - Selective History Management: Capability to update individual user
+ * browsing history while preserving global data.
+ * - Manual Type Conversion: Implementation of custom string-to-int logic
+ * to ensure compatibility across different compiler environments.
+ *****************************************************************************/
 
+#include "CSVHandler.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -7,6 +21,11 @@
 
 using namespace std;
 
+/**
+ * Converts an integer value to its string representation manually.
+ * @param value The integer to be converted.
+ * @return A string containing the numeric characters.
+ */
 string intToStr(int value) {
     if (value == 0) return "0";
     string res = "";
@@ -17,7 +36,11 @@ string intToStr(int value) {
     return res;
 }
 
-
+/**
+ * Removes leading and trailing whitespace characters (spaces, tabs, carriage returns).
+ * @param s The raw input string.
+ * @return The cleaned string.
+ */
 static string trim(const string& s) {
     int start = 0;
     while (start < (int)s.length() && (s[start] == ' ' || s[start] == '\t')) start++;
@@ -29,42 +52,43 @@ static string trim(const string& s) {
     return s.substr(start, end - start + 1);
 }
 
-
+/**
+ * Advanced CSV field extractor that handles quoted fields and escaped quotes.
+ * @param ss The stringstream of the current CSV line.
+ * @return The extracted and processed field string.
+ */
 static string parseCSVField(stringstream& ss) {
     string field;
     char ch;
-    
 
     while (ss.peek() == ' ' || ss.peek() == '\t') {
         ss.get();
     }
-    
 
     if (ss.peek() == '"') {
         ss.get(); // consume opening quote
         while (ss.get(ch)) {
             if (ch == '"') {
-                // Check for escaped quote (two quotes)
                 if (ss.peek() == '"') {
                     ss.get(); // consume second quote
                     field += '"';
-                } else {
-                    
+                }
+                else {
                     break;
                 }
-            } else {
+            }
+            else {
                 field += ch;
             }
         }
-        // Consume trailing comma if present
         while (ss.peek() == ' ' || ss.peek() == '\t') {
             ss.get();
         }
         if (ss.peek() == ',') {
             ss.get();
         }
-    } else {
-        // Unquoted field - read until comma or end
+    }
+    else {
         while (ss.get(ch)) {
             if (ch == ',') {
                 break;
@@ -73,10 +97,16 @@ static string parseCSVField(stringstream& ss) {
         }
         field = trim(field);
     }
-    
     return field;
 }
 
+/**
+ * Loads game data from a CSV file into the Dynamic Array.
+ * Generates unique IDs (G001, etc.) during the import process.
+ * @param filename Path to the games CSV.
+ * @param games Reference to the storage array.
+ * @return True if successful, false otherwise.
+ */
 bool CSVHandler::loadGames(const string& filename, GameDynamicArray& games) {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -85,64 +115,50 @@ bool CSVHandler::loadGames(const string& filename, GameDynamicArray& games) {
     }
 
     string line;
-    // 1. Skip the header row (name, minplayers, etc.)
-    getline(file, line);
+    getline(file, line); // Skip header
 
-    int idCounter = 1; // Start counting from 1 for G001, G002...
+    int idCounter = 1;
 
     while (getline(file, line)) {
         if (line.length() == 0) continue;
 
-        // --- STEP 1: Generate the ID "Gxxx" manually ---
         string id = "G";
         if (idCounter < 100) id += "0";
         if (idCounter < 10) id += "0";
         id += intToStr(idCounter);
         idCounter++;
 
-        // --- STEP 2: Initialize variables to 0 (Fixes "not defined" errors) ---
         string title = "";
         int minP = 0, maxP = 0, year = 0;
 
-        // --- STEP 3: Manual Parsing (No stringstream) ---
-        // This uses string::find and string::substr which are standard string methods
         size_t start = 0;
         size_t end = line.find(',');
 
-        // Field 1: Name (Handle quotes if they exist)
         title = line.substr(start, end - start);
         if (title.length() > 0 && title[0] == '"') {
             title = title.substr(1, title.length() - 2);
         }
 
-        // Field 2: minplayers
         start = end + 1;
         end = line.find(',', start);
         string minPStr = line.substr(start, end - start);
 
-        // Field 3: maxplayers
         start = end + 1;
         end = line.find(',', start);
         string maxPStr = line.substr(start, end - start);
 
-        // Fields 4 & 5: (Playtimes - we skip these)
         start = end + 1;
         end = line.find(',', start); // skip maxplaytime
         start = end + 1;
         end = line.find(',', start); // skip minplaytime
 
-        // Field 6: yearpublished
         start = end + 1;
         string yearStr = line.substr(start);
 
-        // --- STEP 4: Convert strings to integers manually ---
-        // Using a basic loop to avoid stoi if necessary
         for (char c : minPStr) if (c >= '0' && c <= '9') minP = minP * 10 + (c - '0');
         for (char c : maxPStr) if (c >= '0' && c <= '9') maxP = maxP * 10 + (c - '0');
         for (char c : yearStr) if (c >= '0' && c <= '9') year = year * 10 + (c - '0');
 
-        // --- STEP 5: Create Game object and add to your Dynamic Array ---
-        // We set totalCopies and availableCopies to 1 by default
         Game g(id, title, minP, maxP, year, 1, 1);
         games.add(g);
     }
@@ -150,6 +166,13 @@ bool CSVHandler::loadGames(const string& filename, GameDynamicArray& games) {
     file.close();
     return true;
 }
+
+/**
+ * Saves the current game inventory back to the CSV file.
+ * @param filename Path to the games CSV.
+ * @param games Reference to the inventory array.
+ * @return True if file was written successfully.
+ */
 bool CSVHandler::saveGames(const string& filename, GameDynamicArray& games) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -157,12 +180,10 @@ bool CSVHandler::saveGames(const string& filename, GameDynamicArray& games) {
         return false;
     }
 
-    // Header
     file << "name,minplayers,maxplayers,maxplaytime,minplaytime,yearpublished\n";
 
     for (int i = 0; i < games.size(); i++) {
         Game g = games.get(i);
-
         file << "\"" << g.getTitle() << "\","
             << g.getMinPlayers() << ","
             << g.getMaxPlayers() << ","
@@ -175,6 +196,12 @@ bool CSVHandler::saveGames(const string& filename, GameDynamicArray& games) {
     return true;
 }
 
+/**
+ * Loads user/member accounts and their roles from a CSV file.
+ * @param filename Path to the users CSV.
+ * @param users Reference to the user directory array.
+ * @return True if successful.
+ */
 bool CSVHandler::loadUsers(const string& filename, UserDynamicArray& users) {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -183,7 +210,6 @@ bool CSVHandler::loadUsers(const string& filename, UserDynamicArray& users) {
     }
 
     string line;
-    // Skip header
     if (!getline(file, line)) {
         file.close();
         return false;
@@ -191,9 +217,7 @@ bool CSVHandler::loadUsers(const string& filename, UserDynamicArray& users) {
 
     while (getline(file, line)) {
         if (trim(line) == "") continue;
-
         stringstream ss(line);
-
         string userID, name, roleStr;
 
         getline(ss, userID, ',');
@@ -204,9 +228,7 @@ bool CSVHandler::loadUsers(const string& filename, UserDynamicArray& users) {
         name = trim(name);
         roleStr = trim(roleStr);
 
-        Role role = MEMBER;
-        if (roleStr == "ADMIN") role = ADMIN;
-        else role = MEMBER;
+        Role role = (roleStr == "ADMIN") ? ADMIN : MEMBER;
 
         User u(userID, name, role);
         users.add(u);
@@ -216,6 +238,12 @@ bool CSVHandler::loadUsers(const string& filename, UserDynamicArray& users) {
     return true;
 }
 
+/**
+ * Saves all user accounts and roles to the disk.
+ * @param filename Path to the users CSV.
+ * @param users Reference to the user directory array.
+ * @return True if write successful.
+ */
 bool CSVHandler::saveUsers(const string& filename, UserDynamicArray& users) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -227,7 +255,6 @@ bool CSVHandler::saveUsers(const string& filename, UserDynamicArray& users) {
 
     for (int i = 0; i < users.size(); i++) {
         User u = users.get(i);
-
         file << u.getUserID() << ","
             << u.getName() << ","
             << (u.getRole() == ADMIN ? "ADMIN" : "MEMBER") << "\n";
@@ -237,6 +264,12 @@ bool CSVHandler::saveUsers(const string& filename, UserDynamicArray& users) {
     return true;
 }
 
+/**
+ * Loads historical and active borrowing records into a Linked List.
+ * @param filename Path to the records CSV.
+ * @param records Reference to the Borrow Record Linked List.
+ * @return True if successful.
+ */
 bool CSVHandler::loadBorrowRecords(const string& filename, BorrowLinkedList& records) {
     ifstream file(filename);
     if (!file.is_open()) {
@@ -245,7 +278,6 @@ bool CSVHandler::loadBorrowRecords(const string& filename, BorrowLinkedList& rec
     }
 
     string line;
-    // Skip header
     if (!getline(file, line)) {
         file.close();
         return false;
@@ -253,9 +285,7 @@ bool CSVHandler::loadBorrowRecords(const string& filename, BorrowLinkedList& rec
 
     while (getline(file, line)) {
         if (trim(line) == "") continue;
-
         stringstream ss(line);
-
         string recordID, userID, gameID, borrowDate, returnDate;
 
         getline(ss, recordID, ',');
@@ -264,13 +294,7 @@ bool CSVHandler::loadBorrowRecords(const string& filename, BorrowLinkedList& rec
         getline(ss, borrowDate, ',');
         getline(ss, returnDate, ',');
 
-        recordID = trim(recordID);
-        userID = trim(userID);
-        gameID = trim(gameID);
-        borrowDate = trim(borrowDate);
-        returnDate = trim(returnDate);
-
-        BorrowRecord br(recordID, userID, gameID, borrowDate, returnDate);
+        BorrowRecord br(trim(recordID), trim(userID), trim(gameID), trim(borrowDate), trim(returnDate));
         records.insertFront(br);
     }
 
@@ -278,6 +302,12 @@ bool CSVHandler::loadBorrowRecords(const string& filename, BorrowLinkedList& rec
     return true;
 }
 
+/**
+ * Saves the entire linked list of borrow records to the CSV.
+ * @param filename Path to the records CSV.
+ * @param records Reference to the Linked List.
+ * @return True if successful.
+ */
 bool CSVHandler::saveBorrowRecords(const string& filename, BorrowLinkedList& records) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -292,31 +322,28 @@ bool CSVHandler::saveBorrowRecords(const string& filename, BorrowLinkedList& rec
     return true;
 }
 
-
 /**
- * Reads review data from a CSV and attaches it to existing Game objects.
- * @param filename The path to the reviews CSV file.
- * @param games A reference to the Dynamic Array containing loaded Game objects.
- * @return bool True if the file was opened and processed successfully.
+ * Loads reviews and attaches them to corresponding Games via BST insertion.
+ * @param filename Path to reviews CSV.
+ * @param games Array of games to match review IDs against.
+ * @return True if file processed.
  */
 bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
     ifstream file(filename);
     if (!file.is_open()) return false;
 
     string line;
-    if (!getline(file, line)) return false; // Skip header
+    if (!getline(file, line)) return false;
 
     while (getline(file, line)) {
         if (trim(line) == "") continue;
-
         stringstream ss(line);
         string gID, name, rateStr, comm;
 
-        // Use getline with comma delimiter
         getline(ss, gID, ',');
         getline(ss, name, ',');
         getline(ss, rateStr, ',');
-        getline(ss, comm); // Read the rest of the line as the comment
+        getline(ss, comm);
 
         gID = trim(gID);
         name = trim(name);
@@ -326,11 +353,10 @@ bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
         string tRate = trim(rateStr);
         for (char c : tRate) if (c >= '0' && c <= '9') rate = rate * 10 + (c - '0');
 
-        // CRITICAL FIX: Find the game and ensure the pointer is valid
         for (int i = 0; i < games.size(); i++) {
             if (games.get(i).getGameID() == gID) {
                 Game* targetGame = games.getPtr(i);
-                if (targetGame != nullptr) { // Safety check
+                if (targetGame != nullptr) {
                     targetGame->addReview(name, comm, rate);
                 }
                 break;
@@ -341,6 +367,12 @@ bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
     return true;
 }
 
+/**
+ * Triggers recursive BST traversal for each game to save reviews to CSV.
+ * @param filename Path to reviews CSV.
+ * @param games Reference to games inventory.
+ * @return True if successful.
+ */
 bool CSVHandler::saveReviews(const string& filename, GameDynamicArray& games) {
     ofstream file(filename);
     if (!file.is_open()) {
@@ -348,12 +380,8 @@ bool CSVHandler::saveReviews(const string& filename, GameDynamicArray& games) {
         return false;
     }
 
-    // Header row
     file << "gameID,memberName,rating,comment\n";
-
     for (int i = 0; i < games.size(); i++) {
-        // This calls the Game::saveReviews method we wrote earlier, 
-        // which performs the Pre-Order traversal of the BST.
         games.get(i).saveReviews(file);
     }
 
@@ -361,16 +389,20 @@ bool CSVHandler::saveReviews(const string& filename, GameDynamicArray& games) {
     return true;
 }
 
-bool CSVHandler::loadBrowseHistory(const string& filename, const string& userID, 
-                                   BrowseHistory& history, GameDynamicArray& games) {
+/**
+ * Loads the browsing history queue for a specific user ID.
+ * @param filename Path to history CSV.
+ * @param userID The ID of the currently logged-in user.
+ * @param history The queue to populate.
+ * @param games Inventory to link history back to Game objects.
+ * @return True if file read.
+ */
+bool CSVHandler::loadBrowseHistory(const string& filename, const string& userID,
+    BrowseHistory& history, GameDynamicArray& games) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        // File might not exist yet; this is okay
-        return false;
-    }
+    if (!file.is_open()) return false;
 
     string line;
-    // Skip header: userID,gameID,viewedDate
     if (!getline(file, line)) {
         file.close();
         return false;
@@ -378,7 +410,6 @@ bool CSVHandler::loadBrowseHistory(const string& filename, const string& userID,
 
     while (getline(file, line)) {
         if (trim(line) == "") continue;
-
         stringstream ss(line);
         string loadedUserID, gameID, viewedDate;
 
@@ -386,15 +417,10 @@ bool CSVHandler::loadBrowseHistory(const string& filename, const string& userID,
         getline(ss, gameID, ',');
         getline(ss, viewedDate, ',');
 
-        loadedUserID = trim(loadedUserID);
-        gameID = trim(gameID);
-        viewedDate = trim(viewedDate);
-
-        // Only load records for this specific user
-        if (loadedUserID == userID) {
-            Game* game = games.findByGameID(gameID);
+        if (trim(loadedUserID) == userID) {
+            Game* game = games.findByGameID(trim(gameID));
             if (game != nullptr) {
-                history.enqueue(*game, viewedDate);
+                history.enqueue(*game, trim(viewedDate));
             }
         }
     }
@@ -403,63 +429,56 @@ bool CSVHandler::loadBrowseHistory(const string& filename, const string& userID,
     return true;
 }
 
-bool CSVHandler::saveBrowseHistory(const string& filename, const string& userID, 
-                                   BrowseHistory& history) {
-    // Read existing file and preserve other users' history
+/**
+ * Saves browsing history while ensuring other users' data is not overwritten.
+ * @param filename Path to history CSV.
+ * @param userID The ID of the current user.
+ * @param history The history queue to save.
+ * @return True if file updated.
+ */
+bool CSVHandler::saveBrowseHistory(const string& filename, const string& userID,
+    BrowseHistory& history) {
     ifstream inFile(filename);
     vector<string> allLines;
-    
+
     if (inFile.is_open()) {
         string line;
         if (getline(inFile, line)) {
-            allLines.push_back(line); // Save header
+            allLines.push_back(line);
         }
-        
+
         while (getline(inFile, line)) {
             if (trim(line) == "") continue;
-            
             stringstream ss(line);
             string lineUserID;
             getline(ss, lineUserID, ',');
-            lineUserID = trim(lineUserID);
-            
-            // Keep records from other users
-            if (lineUserID != userID) {
+            if (trim(lineUserID) != userID) {
                 allLines.push_back(line);
             }
         }
         inFile.close();
     }
 
-    // Write back all lines plus new history for this user
     ofstream outFile(filename);
-    if (!outFile.is_open()) {
-        cout << "[ERROR] Unable to write to " << filename << "\n";
-        return false;
-    }
+    if (!outFile.is_open()) return false;
 
-    // Write header if file was empty
     if (allLines.empty()) {
         outFile << "userID,gameID,viewedDate\n";
-    } else {
-        outFile << allLines[0] << "\n"; // Write existing header
+    }
+    else {
+        outFile << allLines[0] << "\n";
     }
 
-    // Write other users' records
     for (int i = 1; i < (int)allLines.size(); i++) {
         outFile << allLines[i] << "\n";
     }
-    
-    // Write current user's browse history from the BrowseHistory queue
-    // We need to traverse the queue and write each entry
+
     int historySize = history.getSize();
     for (int i = 0; i < historySize; i++) {
         Game* game = history.getGameAt(i);
         if (game != nullptr) {
-            string viewedDate = history.getViewedDateAt(i);
-            outFile << userID << ","
-                    << game->getGameID() << ","
-                    << viewedDate << "\n";
+            outFile << userID << "," << game->getGameID() << ","
+                << history.getViewedDateAt(i) << "\n";
         }
     }
 
