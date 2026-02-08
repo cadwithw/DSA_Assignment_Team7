@@ -1,14 +1,11 @@
-#ifndef GAMEDYNAMICARRAY_H
-#define GAMEDYNAMICARRAY_H
-
+#pragma once
 #include "Game.h"
 #include <string>
-using namespace std;
+#include <cassert>
 
-// Array-based implementation of the List ADT for Game objects
 class GameDynamicArray {
 private:
-    Game* data;
+    Game** data;
     int capacity;
     int count;
 
@@ -18,24 +15,27 @@ public:
     GameDynamicArray();
     ~GameDynamicArray();
 
-    // Basic list operations
+    // Prevent shallow copies that would lead to double-free/dangling pointers
+    GameDynamicArray(const GameDynamicArray&) = delete;
+    GameDynamicArray& operator=(const GameDynamicArray&) = delete;
+
     int size() const;
     bool isEmpty() const;
 
-    Game get(int index) const;
+    // Return by reference to avoid creating temporaries (which previously caused destructor runs)
+    Game& get(int index);
+    const Game& get(int index) const;
+
+    // Pointer access
     Game* getPtr(int index);
 
+    // Ownership: add allocates a new Game on the heap
     void add(const Game& g);
 
-    // Search operations
-    int findIndexByGameID(const string& gameID) const;
-    Game* findByGameID(const string& gameID);
+    int findIndexByGameID(const std::string& gameID) const;
+    Game* findByGameID(const std::string& gameID);
 
-    // Remove operation
-    bool removeByGameID(const string& gameID);
+    bool removeByGameID(const std::string& gameID);
 
-    // Debug / display
     void printAll() const;
 };
-
-#endif

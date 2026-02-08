@@ -2,17 +2,21 @@
 #define GAME_H
 
 #include <string>
-#include <fstream> // Required for file operations
+#include <fstream>
 
 using namespace std;
 
 struct ReviewNode {
+    string gameID;      // Add this field
     string memberName;
     string comment;
     int rating;
     ReviewNode* left, * right;
-    ReviewNode(string n, string c, int r) :
-        memberName(n), comment(c), rating(r), left(nullptr), right(nullptr) {
+
+    // Constructor MUST take 4 arguments and initialize pointers to nullptr
+    ReviewNode(string gID, string n, string c, int r) :
+        gameID(gID), memberName(n), comment(c), rating(r),
+        left(nullptr), right(nullptr) {
     }
 };
 
@@ -36,7 +40,7 @@ private:
     // Helper to deep copy BST
     ReviewNode* copyTree(ReviewNode* node) const;
 
-    // NEW: Recursive Helper for saving to CSV
+    // Recursive Helper for saving to CSV
     void saveReviewsRecursive(ofstream& file, ReviewNode* node) const;
 
 public:
@@ -66,7 +70,7 @@ public:
     void addReview(string name, string comm, int rate);
     void displayReviews() const;
 
-    // NEW: File Persistence Interface
+    //File Persistence Interface
     void saveReviews(ofstream& file) const;
 };
 

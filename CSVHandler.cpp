@@ -291,16 +291,20 @@ bool CSVHandler::saveBorrowRecords(const string& filename, BorrowLinkedList& rec
     file.close();
     return true;
 }
+
+
+/**
+ * Reads review data from a CSV and attaches it to existing Game objects.
+ * @param filename The path to the reviews CSV file.
+ * @param games A reference to the Dynamic Array containing loaded Game objects.
+ * @return bool True if the file was opened and processed successfully.
+ */
 bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        // Not an error; file might not exist yet on first run
-        return false; 
-    }
+    if (!file.is_open()) return false;
 
     string line;
-    // Skip header: gameID,memberName,rating,comment
-    if (!getline(file, line)) return false;
+    if (!getline(file, line)) return false; // Skip header
 
     while (getline(file, line)) {
         if (trim(line) == "") continue;
@@ -308,28 +312,31 @@ bool CSVHandler::loadReviews(const string& filename, GameDynamicArray& games) {
         stringstream ss(line);
         string gID, name, rateStr, comm;
 
-        // Use parseCSVField to properly handle quoted fields containing commas
-        gID = parseCSVField(ss);
-        name = parseCSVField(ss);
-        rateStr = parseCSVField(ss);
-        comm = parseCSVField(ss);
+        // Use getline with comma delimiter
+        getline(ss, gID, ',');
+        getline(ss, name, ',');
+        getline(ss, rateStr, ',');
+        getline(ss, comm); // Read the rest of the line as the comment
 
         gID = trim(gID);
         name = trim(name);
-        int rate = 0;
-        for (char c : trim(rateStr)) if (c >= '0' && c <= '9') rate = rate * 10 + (c - '0');
         comm = trim(comm);
 
-        // Find the game pointer and add the review to its BST
+        int rate = 0;
+        string tRate = trim(rateStr);
+        for (char c : tRate) if (c >= '0' && c <= '9') rate = rate * 10 + (c - '0');
+
+        // CRITICAL FIX: Find the game and ensure the pointer is valid
         for (int i = 0; i < games.size(); i++) {
             if (games.get(i).getGameID() == gID) {
-                // We use getPtr to ensure we are modifying the actual game in the array
-                games.getPtr(i)->addReview(name, comm, rate);
+                Game* targetGame = games.getPtr(i);
+                if (targetGame != nullptr) { // Safety check
+                    targetGame->addReview(name, comm, rate);
+                }
                 break;
             }
         }
     }
-
     file.close();
     return true;
 }
