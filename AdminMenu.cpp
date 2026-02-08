@@ -180,7 +180,7 @@ void AdminMenu::show(GameDynamicArray& games,
                 cout << "No borrowing records have been created yet.\n";
             }
             else {
-                records.printAll();
+                records.printAll(&games);
             }
 
             cout << "---------------------------------\n";
