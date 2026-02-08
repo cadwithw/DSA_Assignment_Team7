@@ -1,3 +1,16 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Queue ADT with Auto-Limiting: Implements a linked list-based queue that
+ * maintains only the 5 most recent game views with O(1) enqueue/dequeue.
+ * - Real-Time Stock Lookup: Fetches current game stock from main games array
+ * to display live inventory instead of stale cached data.
+ * - CSV Persistence: Browse history persists per-user across sessions, allowing
+ * users to see their viewing history on re-login without data loss.
+ *****************************************************************************/
+
 #include "BrowseHistory.h"
 #include "GameDynamicArray.h"
 #include <iostream>

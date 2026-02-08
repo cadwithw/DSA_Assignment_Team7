@@ -1,3 +1,15 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Linked List for Transactions: Implements a singly-linked list for efficient
+ * O(1) front insertion of new borrow records without needing to reallocate.
+ * - Linear Search: O(n) traversal to find active borrows and user-specific records.
+ * - Transaction Persistence: Serializes all borrow/return records to CSV for
+ * data persistence and audit trail generation.
+ *****************************************************************************/
+
 /// Implementation of BorrowLinkedList - A linked list-based structure for managing borrow records
 /// This linked list stores all borrow and return transactions for the board game management system.
 /// Each node contains a BorrowRecord with transaction details (user ID, game ID, borrow date, return date).

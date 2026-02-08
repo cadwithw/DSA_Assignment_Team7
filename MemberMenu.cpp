@@ -1,3 +1,18 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Queue-Based Browse History: Maintains only the 5 most recent game views
+ * with automatic removal of oldest entries for memory efficiency.
+ * - Multi-Criteria Search: Supports searching games by player count, year,
+ * and title with case-insensitive matching for flexibility.
+ * - Real-Time Availability: Checks current stock when displaying browse history
+ * and search results to prevent borrowing unavailable games.
+ * - Transaction Persistence: Immediately saves borrow/return records and browse
+ * history to CSV for data durability and audit trails.
+ *****************************************************************************/
+
 #include "MemberMenu.h"
 #include "CSVHandler.h"
 #include "BrowseHistory.h"

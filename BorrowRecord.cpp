@@ -1,3 +1,16 @@
+/******************************************************************************
+ * Team Member: Ashton, Caden
+ * Group: 7
+ * Student IDs: S10267643, S10267163
+ * Highlighted Features:
+ * - Transaction Data Encapsulation: Stores complete borrow-return lifecycle data
+ * including user ID, game ID, borrow date, and return date for audit trails.
+ * - Status Tracking: Distinguishes between active borrows (empty return date)
+ * and completed transactions with simple isReturned() check.
+ * - Flexible Display: Supports printing with optional game names for cleaner
+ * human-readable output in reports.
+ *****************************************************************************/
+
 #include "BorrowRecord.h"
 #include <iostream>
 using namespace std;
